@@ -424,8 +424,8 @@ if (modeToggle && modeLabel) {
 }
 
 const BRIDGE_CONFIG = {
-  url: 'wss://SEU_BRIDGE.onrender.com',
-  tiktokUsername: 'SEU_USUARIO_TIKTOK'
+  url: 'wss://tiktokbriedge.onrender.com,
+  tiktokUsername: 'ilustramichael'
 };
 
 if (BRIDGE_CONFIG.url !== 'wss://SEU_BRIDGE.onrender.com') {
