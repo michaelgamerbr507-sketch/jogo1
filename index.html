@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="pt-BR">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name="theme-color" content="#050914"><title>Adivinhe a Bandeira — TikTok LIVE</title><link rel="stylesheet" href="style.css"></head>
+<body><div class="app">
+<header class="topbar"><div class="live"><i></i> LIVE</div><div class="brand">ADIVINHE A BANDEIRA</div><div class="round-pill"><span id="roundNumber">1</span><small>/ <span id="roundTotal">197</span></small></div><button id="adminToggle" class="gear" aria-label="Configurações">⚙</button></header>
+<main>
+<section class="hero"><div class="eyebrow">🌎 QUAL É ESTE PAÍS?</div><div id="flag" class="flag">🇧🇷</div><div id="hint" class="hint" aria-live="polite"></div><div class="question">DIGITE O NOME DO PAÍS NO CHAT</div></section>
+<section class="timer-card"><div class="timer-head"><span>⏱</span><strong id="timer">15</strong><small>SEG</small></div><div class="progress"><span id="progressBar"></span></div></section>
+<section class="participation"><button id="giftTip" class="gift" type="button"><span>🌹</span><b>REVELAR</b><small>DICA</small></button></section>
+<div id="message" class="message">VALENDO!</div>
+<section class="hit-area"><div class="hit-title">ACERTARAM <b id="hitCount">0</b> • <b id="attemptCount2">0</b> TENTANDO</div><div id="hitAvatars" class="hit-avatars"></div></section>
+<section class="rank-grid"><div class="panel"><div class="panel-title">🏆 RANKING DA RODADA</div><div id="roundRanking" class="rows"></div></div><div class="panel"><div class="panel-title">👑 RANKING PARTIDA</div><div id="totalRanking" class="rows"></div></div></section>
+<section class="test-chat" id="testChat"><div class="test-title">CHAT DE TESTE — SIMULAÇÃO DA LIVE</div><div id="chatList" class="chat-list"></div><div class="demo-form"><input id="demoUser" value="@Joao" aria-label="Nome do jogador"><input id="demoAvatar" placeholder="URL do avatar (opcional)" aria-label="URL do avatar"><input id="demoMessage" placeholder="Resposta do país" aria-label="Mensagem"><button id="demoSend">ENVIAR</button></div></section>
+</main>
+<footer><span>🏆 <b id="totalPoints">0</b> PTS</span><button id="start" class="primary">COMEÇAR</button><button id="next">PRÓXIMA</button></footer>
+<aside id="admin" class="admin hidden"><button id="adminClose">×</button><b>CONTROLE</b><label>Tempo <input id="timeInput" type="number" min="3" max="120" value="15"></label><button id="pause">PAUSAR</button><button id="reset">NOVA PARTIDA</button><hr style="margin:8px 0;border-color:#fff2"><button id="showAnswer">👁 REVELAR RESPOSTA</button><hr style="margin:8px 0;border-color:#fff2"><label><input type="checkbox" id="modeToggle" checked> <span id="modeLabel">Modo Admin (chat teste visível)</span></label></aside>
+<div id="winnerOverlay" class="winner-overlay" aria-live="polite"><div id="winnerContent"></div><div class="next-countdown">PRÓXIMA RODADA EM<strong id="nextCountdown">3</strong></div></div>
+</div><script src="countries.js"></script><script src="game.js"></script></body></html>

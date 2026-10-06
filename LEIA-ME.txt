@@ -1,0 +1,15 @@
+VERSÃO DE TESTE — ADIVINHE A BANDEIRA
+
+1. Abra index.html.
+2. Clique em COMEÇAR.
+3. O bloco CHAT DE TESTE — SIMULAÇÃO DA LIVE permite simular mensagens reais.
+4. Informe @nome, opcionalmente URL de avatar e a resposta. Clique ENVIAR.
+5. O jogador aparece como TENTANDO 1, depois TENTANDO 2, TENTANDO 3 etc. Cada jogador só entra uma vez por pergunta.
+6. Primeiro acerto vale 5 PTS, segundo 3, terceiro 2, quarto 1 e quinto 1.
+7. Se ninguém acertar, aparece NINGUÉM ACERTOU com a resposta correta e a contagem para a próxima pergunta.
+8. O botão 🌹 REVELAR DICA mostra a primeira letra do país e toca um bip simples depois de uma interação.
+9. COMEÇAR e PRÓXIMA ficam no rodapé.
+10. Não existe troféu gigante no centro da tela.
+
+CONEXÃO FUTURA COM CHAT:
+A página expõe window.handleChatMessage(username, message, avatarUrl). Um adaptador externo legítimo pode chamar essa função para alimentar o jogo com eventos da LIVE. O GitHub Pages sozinho não lê o chat do TikTok.
