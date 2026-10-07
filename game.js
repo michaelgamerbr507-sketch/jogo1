@@ -5,7 +5,8 @@ let attempts = new Map(), roundWinners = [], totalPlayers = new Map(), totals = 
 let ws = null, reconnectAttempts = 0;
 const MAX_RECONNECT = 10, RECONNECT_DELAY = 5000;
 let tickTockInterval = null;
-let revealedLetters = 0;
+let revealedLetters = 0;let avatarCache = new Map();
+
 
 const $ = id => document.getElementById(id);
 const norm = s => String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -18,9 +19,16 @@ function esc(s) {
 function shuffle(a) { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
 
 function av(p, cls = 'avatar') {
-  return p.avatar ? `<img class="${cls}" src="${esc(p.avatar)}" alt="">` : `<span class="${cls} avatar-fallback">${esc((p.name || '??').replace('@', '').slice(0, 2).toUpperCase())}</span>`;
+  const key = p.userId || p.key || p.name;
+  if (avatarCache.has(key)) return avatarCache.get(key);
+  
+  const html = p.avatar 
+    ? `<img class="${cls}" src="${esc(p.avatar)}" alt="" loading="lazy">` 
+    : `<span class="${cls} avatar-fallback">${esc((p.name || '??').replace('@', '').slice(0, 2).toUpperCase())}</span>`;
+  
+  avatarCache.set(key, html);
+  return html;
 }
-
 function renderFlag() {
   const q = deck[index];
   $('flag').innerHTML = q.flagAsset ? `<img src="${esc(q.flagAsset)}" alt="${esc(q.name)}">` : esc(q.flag);
@@ -104,7 +112,7 @@ function render() {
 }
 
 function start() {
-  clearInterval(interval);
+  clearInterval(interval); avatarCache.clear();
   deck = shuffle(COUNTRIES);
   index = 0;
   newQuestion();
@@ -389,7 +397,7 @@ $('pause').onclick = () => {
   else startTickTock();
 };
 $('reset').onclick = () => {
-  totals.clear();
+  totals.clear(); avatarCache.clear();
   start();
 };
 $('showAnswer').onclick = () => {
