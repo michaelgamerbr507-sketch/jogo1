@@ -1,4 +1,5 @@
-const DEFAULT_TIME = 15;
+javascript
+  const DEFAULT_TIME = 15;
 let ROUND_TIME = DEFAULT_TIME;
 let deck = [], index = 0, time = ROUND_TIME, interval = null, running = false, locked = false, paused = false;
 let attempts = new Map(), roundWinners = [], totalPlayers = new Map(), totals = new Map();
