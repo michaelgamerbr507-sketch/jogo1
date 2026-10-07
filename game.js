@@ -28,10 +28,8 @@ function renderFlag() {
 
 function renderAttempts() {
   const a = [...attempts.values()];
-  const attemptCount = $('attemptCount');
-  const attemptsList = $('attempts');
-  if (attemptCount) attemptCount.textContent = a.length;
-  if (attemptsList) attemptsList.innerHTML = a.slice(-8).map(p => av(p)).join('');
+  $('attemptCount').textContent = a.length;
+  $('attempts').innerHTML = a.slice(-8).map(p => av(p)).join('');
   const ac2 = $('attemptCount2');
   if (ac2) ac2.textContent = a.length;
 }
@@ -74,7 +72,7 @@ function buildHint(answer, revealCount = 0) {
   let revealed = 0;
   for (let i = 0; i < chars.length; i++) {
     const c = chars[i];
-    if (/[A-Za-zÀ-ÿ]/.test(c)) {
+    if (/[A-Za-zÃ€-Ã¿]/.test(c)) {
       if (revealed < revealCount) {
         out += c.toUpperCase();
         revealed++;
@@ -94,11 +92,11 @@ function render() {
   $('roundTotal').textContent = deck.length;
   $('timer').textContent = time;
   $('progressBar').style.width = `${Math.max(0, time / ROUND_TIME * 100)}%`;
+  renderFlag();
   renderAttempts();
   renderRanks();
   renderHitAvatars();
   
-  // Show hint with underscores - controlled by revealedLetters
   const hintEl = $('hint');
   if (hintEl && deck[index]) {
     hintEl.textContent = buildHint(deck[index].name, revealedLetters);
@@ -119,15 +117,13 @@ function newQuestion() {
   locked = false;
   paused = false;
   time = ROUND_TIME;
-  revealedLetters = 0; // Reset revealed letters for new question
+  revealedLetters = 0;
   $('hint').textContent = '';
   $('message').textContent = 'VALENDO!';
   $('message').className = 'message';
   
-  // Bandeira e traços entram juntos no início da rodada.
   const q = deck[index];
   if (q) {
-    renderFlag();
     $('hint').textContent = buildHint(q.name, 0);
   }
   
@@ -139,11 +135,10 @@ function newQuestion() {
 
 function tick() {
   if (paused || locked) return;
-
-  // Nunca deixa o cronômetro passar de 0.
+  
   time = Math.max(0, time - 1);
   render();
-
+  
   if (time === 0) {
     clearInterval(interval);
     interval = null;
@@ -155,8 +150,6 @@ function tick() {
 }
 
 function timeUp() {
-  // A rodada terminou: remove imediatamente os avatares da área do jogo.
-  // Mantemos uma cópia apenas para exibir o ranking final no overlay.
   const winners = roundWinners.slice();
   roundWinners = [];
   renderHitAvatars();
@@ -172,8 +165,8 @@ function showOverlay(firstOrList) {
   if (firstOrList && firstOrList.length > 0) {
     let html = '';
     firstOrList.forEach((w, i) => {
-      const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : `#${i + 1}`;
-      html += `${av(w, 'winner-avatar')}<div class="winner-name">${esc(w.name)}</div><div class="winner-label">${medal} — +${w.points} PTS</div>`;
+      const medal = i === 0 ? 'ðŸ¥‡' : i === 1 ? 'ðŸ¥ˆ' : i === 2 ? 'ðŸ¥‰' : `#${i + 1}`;
+      html += `${av(w, 'winner-avatar')}<div class="winner-name">${esc(w.name)}</div><div class="winner-label">${medal} â€” +${w.points} PTS</div>`;
       if (i < firstOrList.length - 1) html += '<hr style="margin:8px auto;width:60%;border-color:#fff3">';
     });
     $('winnerContent').innerHTML = html;
@@ -238,8 +231,8 @@ function attempt(username, message, avatar = '') {
   renderHitAvatars();
   renderRanks();
   
-  $('message').textContent = '';
-  $('message').className = 'message';
+  $('message').textContent = `${name} ACERTOU! +${points} PTS`;
+  $('message').className = 'message good';
   
   return true;
 }
@@ -250,8 +243,7 @@ function revealHint() {
   const n = deck[index]?.name || '';
   if (!n) return;
   
-  // Count how many letters are in the answer (only alphabetic chars)
-  const letterCount = [...n].filter(c => /[A-Za-zÀ-ÿ]/.test(c)).length;
+  const letterCount = [...n].filter(c => /[A-Za-zÃ€-Ã¿]/.test(c)).length;
   
   if (revealedLetters < letterCount) {
     revealedLetters++;
@@ -272,7 +264,7 @@ function buildHint(answer, revealCount = 0) {
   let revealed = 0;
   for (let i = 0; i < chars.length; i++) {
     const c = chars[i];
-    if (/[A-Za-zÀ-ÿ]/.test(c)) {
+    if (/[A-Za-zÃ€-Ã¿]/.test(c)) {
       if (revealed < revealCount) {
         out += c.toUpperCase();
         revealed++;
@@ -431,7 +423,7 @@ const BRIDGE_CONFIG = {
 if (BRIDGE_CONFIG.url !== 'wss://SEU_BRIDGE.onrender.com') {
   connectBridge(BRIDGE_CONFIG.url, BRIDGE_CONFIG.tiktokUsername);
 } else {
-  console.log('[GAME] Configure BRIDGE_CONFIG no game.js');
+  console.log('[GAME] Configure BRIDGE_CONFIG no game.js com sua URL do Render e @ do streamer');
 }
 
 if (window.COUNTRIES?.length) {
