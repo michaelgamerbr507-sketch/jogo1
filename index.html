@@ -6,7 +6,13 @@
 <main>
 <section class="hero"><div class="eyebrow">🌎 QUAL É ESTE PAÍS?</div><div id="flag" class="flag">🇧🇷</div><div id="hint" class="hint" aria-live="polite"></div><div class="question">DIGITE O NOME DO PAÍS NO CHAT</div></section>
 <section class="timer-card"><div class="timer-head"><span>⏱</span><strong id="timer">15</strong><small>SEG</small></div><div class="progress"><span id="progressBar"></span></div></section>
-<section class="participation"><button id="giftTip" class="gift" type="button"><span>🌹</span><b>REVELAR</b><small>DICA</small></button></section>
+section class="participation">
+  <div class="attempts">
+    <div class="attempt-title">TENTANDO <b id="attemptCount">0</b></div>
+    <div id="attempts" class="avatars"></div>
+  </div>
+  <button id="giftTip" class="gift" type="button"><span>🌹</span><b>REVELAR</b><small>DICA</small></button>
+</section>
 <div id="message" class="message">VALENDO!</div>
 <section class="hit-area"><div class="hit-title">ACERTARAM <b id="hitCount">0</b> • <b id="attemptCount2">0</b> TENTANDO</div><div id="hitAvatars" class="hit-avatars"></div></section>
 <section class="rank-grid"><div class="panel"><div class="panel-title">🏆 RANKING DA RODADA</div><div id="roundRanking" class="rows"></div></div><div class="panel"><div class="panel-title">👑 RANKING PARTIDA</div><div id="totalRanking" class="rows"></div></div></section>
