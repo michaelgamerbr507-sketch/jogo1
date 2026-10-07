@@ -416,7 +416,7 @@ if (modeToggle && modeLabel) {
 }
 
 const BRIDGE_CONFIG = {
-  url: 'wss://tiktokbriedge.onrender.com,
+  url: 'wss://tiktokbriedge.onrender.com',
   tiktokUsername: 'ilustramichael'
 };
 
