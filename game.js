@@ -1,5 +1,4 @@
-javascript
-  const DEFAULT_TIME = 15;
+const DEFAULT_TIME = 15;
 let ROUND_TIME = DEFAULT_TIME;
 let deck = [], index = 0, time = ROUND_TIME, interval = null, running = false, locked = false, paused = false;
 let attempts = new Map(), roundWinners = [], totalPlayers = new Map(), totals = new Map();
@@ -417,7 +416,9 @@ if (modeToggle && modeLabel) {
 }
 
 const BRIDGE_CONFIG = {
-  url: 'wss://tiktokbriedge.onrender.com,
+  // COLE SUA URL DO RENDER AQUI (troque https:// por wss://)
+  url: 'wss://SEU_BRIDGE.onrender.com',
+  // SEU @ DO TIKTOK SEM O @
   tiktokUsername: 'ilustramichael'
 };
 
