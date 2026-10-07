@@ -72,7 +72,7 @@ function buildHint(answer, revealCount = 0) {
   let revealed = 0;
   for (let i = 0; i < chars.length; i++) {
     const c = chars[i];
-    if (/[A-Za-zÃ€-Ã¿]/.test(c)) {
+    if (/[A-Za-zÀ-ÿ]/.test(c)) {
       if (revealed < revealCount) {
         out += c.toUpperCase();
         revealed++;
@@ -243,7 +243,7 @@ function revealHint() {
   const n = deck[index]?.name || '';
   if (!n) return;
   
-  const letterCount = [...n].filter(c => /[A-Za-zÃ€-Ã¿]/.test(c)).length;
+  const letterCount = [...n].filter(c => /[A-Za-zÀ-ÿ]/.test(c)).length;
   
   if (revealedLetters < letterCount) {
     revealedLetters++;
@@ -264,7 +264,7 @@ function buildHint(answer, revealCount = 0) {
   let revealed = 0;
   for (let i = 0; i < chars.length; i++) {
     const c = chars[i];
-    if (/[A-Za-zÃ€-Ã¿]/.test(c)) {
+    if (/[A-Za-zÀ-ÿ]/.test(c)) {
       if (revealed < revealCount) {
         out += c.toUpperCase();
         revealed++;
