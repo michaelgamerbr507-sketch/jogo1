@@ -416,10 +416,8 @@ if (modeToggle && modeLabel) {
 }
 
 const BRIDGE_CONFIG = {
-  // COLE SUA URL DO RENDER AQUI (troque https:// por wss://)
   url: 'wss://SEU_BRIDGE.onrender.com',
-  // SEU @ DO TIKTOK SEM O @
-  tiktokUsername: 'ilustramichael'
+  tiktokUsername: 'SEU_USUARIO_TIKTOK'
 };
 
 if (BRIDGE_CONFIG.url !== 'wss://SEU_BRIDGE.onrender.com') {
