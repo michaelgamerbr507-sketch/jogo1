@@ -2,7 +2,8 @@ const DEFAULT_TIME = 15;
 let ROUND_TIME = DEFAULT_TIME;
 let deck = [], index = 0, time = ROUND_TIME, interval = null, running = false, locked = false, paused = false;
 let attempts = new Map(), roundWinners = [], totalPlayers = new Map(), totals = new Map();
-let ws = null, reconnectAttempts = 0;                                                              const MAX_RECONNECT = 10, RECONNECT_DELAY = 5000;
+let ws = null, reconnectAttempts = 0;
+const MAX_RECONNECT = 10, RECONNECT_DELAY = 5000;
 let tickTockInterval = null;
 let revealedLetters = 0;
 let avatarCache = new Map();
@@ -16,13 +17,13 @@ function esc(s) {
 }
 
 function shuffle(a) { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; } return a; }
+
 function av(p, cls = 'avatar') {
   const key = p.userId || p.key || p.name;
   if (avatarCache.has(key)) return avatarCache.get(key);
 
   const html = p.avatar
-    ? <img class="${cls}" src="${esc(p.avatar)}" alt="" loading="lazy">
-    : <span class="${cls} avatar-fallback">${esc((p.name || '??').replace('@', '').slice(0, 2).toUpperCase())}</span>;
+    ? <img class="${cls}" src="${esc(p.avatar)}" alt="" loading="lazy">                                              : <span class="${cls} avatar-fallback">${esc((p.name || '??').replace('@', '').slice(0, 2).toUpperCase())}</span>;
 
   avatarCache.set(key, html);
   return html;
@@ -32,8 +33,7 @@ function renderFlag() {
   const q = deck[index];
   $('flag').innerHTML = q.flagAsset
     ? <img src="${esc(q.flagAsset)}" alt="${esc(q.name)}" width="180" height="120">
-    : esc(q.flag);
-}
+    : esc(q.flag);                                                                                               }
 
 function renderAttempts() {
   const a = [...attempts.values()];
@@ -53,7 +53,6 @@ function renderRanks() {
   const tr = [...totals.values()].sort((a, b) => b.points - a.points || a.order - b.order).slice(0, 5);
   $('totalRanking').innerHTML = tr.length ? tr.map((p, i) => row(p, i, p.points)).join('') : '<div class="empty">Ranking da partida aguardando</div>';
 }
-
 function renderHitAvatars() {
   const hitAvatars = $('hitAvatars');
   const hitCount = $('hitCount');
@@ -72,16 +71,15 @@ function renderHitAvatars() {
       ${w.avatar ? <img class="hit-avatar" src="${esc(w.avatar)}" alt=""> : <span class="hit-avatar hit-avatar-fallback">${esc(w.name.replace('@', '').slice(0, 2).toUpperCase())}</span>}
       <span class="hit-name">${esc(w.name)}</span>
     </div>`
-  ).join('');
-}
+  ).join('');                                                                                                    }
+
 function buildHint(answer, revealCount = 0) {
   const chars = [...answer];
   let out = '';
   let revealed = 0;
   for (let i = 0; i < chars.length; i++) {
     const c = chars[i];
-    if (/[A-Za-zÀ-ÿ]/.test(c)) {
-      if (revealed < revealCount) {
+    if (/[A-Za-zÀ-ÿ]/.test(c)) {                                                                                       if (revealed < revealCount) {
         out += c.toUpperCase();
         revealed++;
       } else {
@@ -95,8 +93,7 @@ function buildHint(answer, revealCount = 0) {
 }
 
 function render() {
-  const q = deck[index];
-  $('roundNumber').textContent = index + 1;
+  const q = deck[index];                                                                                           $('roundNumber').textContent = index + 1;
   $('roundTotal').textContent = deck.length;
   $('timer').textContent = time;
   $('progressBar').style.width = ${Math.max(0, time / ROUND_TIME * 100)}%;
@@ -117,18 +114,21 @@ function start() {
   index = 0;
   newQuestion();
 }
+
 function newQuestion() {
   clearInterval(interval);
-  attempts.clear();                                                                                  roundWinners = [];
+  attempts.clear();
+  roundWinners = [];
   locked = false;
   paused = false;
   time = ROUND_TIME;
   revealedLetters = 0;
-  $('hint').textContent = '';                                                                        $('message').textContent = 'VALENDO!';
+  $('hint').textContent = '';
+  $('message').textContent = 'VALENDO!';
   $('message').className = 'message';
 
   const q = deck[index];
-  if (q) {                                                                                             $('hint').textContent = buildHint(q.name, 0);
+  if (q) {                                                                                                           $('hint').textContent = buildHint(q.name, 0);
   }
 
   render();
@@ -142,22 +142,24 @@ function tick() {
 
   time = Math.max(0, time - 1);
   render();
+
   if (time === 0) {
     clearInterval(interval);
     interval = null;
     running = false;
     locked = true;
     stopTickTock();
-    timeUp();
-  }
+    timeUp();                                                                                                      }
 }
+
 function timeUp() {
   const winners = roundWinners.slice();
   roundWinners = [];
   renderHitAvatars();
   if (winners.length > 0) {
     showOverlay(winners);
-  } else {                                                                                             showOverlay(null);
+  } else {
+    showOverlay(null);
   }
 }
 
@@ -166,14 +168,15 @@ function showOverlay(winners) {
   const q = deck[index];
   const countryName = q ? q.name.toUpperCase() : '';
   const winnerCount = winners.length;
+
   if (winners && winners.length > 0) {
     const first = winners[0];
     const firstHtml = `
-      <div class="winner-first">
-        ${av(first, 'winner-avatar-first')}
+      <div class="winner-first">                                                                                         ${av(first, 'winner-avatar-first')}
         <div class="winner-name-first">${esc(first.name)}</div>
         <div class="winner-label-first">🥇 PRIMEIRO — +${first.points} PTS</div>
-      </div>                                                                                           `;
+      </div>
+    `;
 
     const others = winners.slice(1);
     let othersHtml = '';
@@ -181,17 +184,19 @@ function showOverlay(winners) {
       othersHtml = `
         <div class="winner-others-row">
           ${others.map((w, i) => {
-            const pos = i + 2;
-            const medal = pos === 2 ? '🥈' : pos === 3 ? '🥉' : #${pos};
+            const pos = i + 2;                                                                                               const medal = pos === 2 ? '🥈' : pos === 3 ? '🥉' : #${pos};
             const displayPoints = pos === 2 ? w.points : 3;
             return `
-              <div class="winner-other">                                                                           ${av(w, 'winner-avatar-other')}
+              <div class="winner-other">
+                ${av(w, 'winner-avatar-other')}
                 <div class="winner-name-other">${esc(w.name)}</div>
                 <div class="winner-label-other">${medal} — +${displayPoints} PTS</div>
               </div>
             `;
-          }).join('')}                                                                                     </div>
-      `;                                                                                               }
+          }).join('')}
+        </div>
+      `;
+    }
 
     const headerHtml = `
       <div class="winner-header">
@@ -215,8 +220,7 @@ function showOverlay(winners) {
   $('winnerOverlay').classList.add('show');
   let n = 3;
   $('nextCountdown').textContent = n;
-  const t = setInterval(() => {
-    n--;
+  const t = setInterval(() => {                                                                                      n--;
     $('nextCountdown').textContent = Math.max(n, 0);
     if (n <= 0) {
       clearInterval(t);
@@ -226,8 +230,7 @@ function showOverlay(winners) {
   }, 1000);
 }
 
-function advance() {
-  index++;
+function advance() {                                                                                               index++;
   if (index >= deck.length) {
     deck = shuffle(COUNTRIES);
     index = 0;
@@ -236,8 +239,7 @@ function advance() {
 }
 
 function addChat(p, message) {
-  const el = document.createElement('div');
-  el.className = 'chat-msg';
+  const el = document.createElement('div');                                                                        el.className = 'chat-msg';
   el.innerHTML = p.avatar ? <img src="${esc(p.avatar)}" alt=""><b>${esc(p.name)}</b><span>${esc(message)}</span> : <b>${esc(p.name)}</b><span>${esc(message)}</span>;
   $('chatList').prepend(el);
   while ($('chatList').children.length > 4) $('chatList').lastChild.remove();
@@ -248,23 +250,21 @@ function attempt(username, message, avatar = '') {
   const name = String(username || '@Jogador').startsWith('@') ? String(username) : '@' + String(username);
   const key = norm(name);
   const pAttempt = { key, name, avatar };
-  addChat(pAttempt, message);
-  if (!attempts.has(key)) {
+  addChat(pAttempt, message);                                                                                      if (!attempts.has(key)) {
     attempts.set(key, pAttempt);
     renderAttempts();
   }
   const q = deck[index];
   const correct = [q.name, ...(q.aliases || [])].map(norm).includes(norm(message));
   if (!correct) return false;
-  if (roundWinners.some(p => p.key === key)) return true;
-  if (roundWinners.length >= 5) return true;
+  if (roundWinners.some(p => p.key === key)) return true;                                                          if (roundWinners.length >= 5) return true;
 
   const points = roundWinners.length === 0 ? 5 : 3;
   const p = totals.get(key) || { key, name, avatar, points: 0, order: totals.size };
   if (avatar) p.avatar = avatar;
   p.points += points;
-  totals.set(key, p);
-  const w = { key, name: p.name, avatar: p.avatar, points };                                         roundWinners.push(w);
+  totals.set(key, p);                                                                                              const w = { key, name: p.name, avatar: p.avatar, points };
+  roundWinners.push(w);
 
   renderHitAvatars();
   renderRanks();
@@ -280,30 +280,29 @@ window.handleChatMessage = (username, message, avatarUrl = '') => attempt(userna
 function revealHint() {
   const n = deck[index]?.name || '';
   if (!n) return;
+
   const letterCount = [...n].filter(c => /[A-Za-zÀ-ÿ]/.test(c)).length;
 
   if (revealedLetters < letterCount) {
-    revealedLetters++;
-    $('hint').textContent = buildHint(deck[index].name, revealedLetters);
-    try {
-      const A = window.AudioContext || window.webkitAudioContext, c = new A(), o = c.createOscillator(), g = c.createGain();
+    revealedLetters++;                                                                                               $('hint').textContent = buildHint(deck[index].name, revealedLetters);
+    try {                                                                                                              const A = window.AudioContext || window.webkitAudioContext, c = new A(), o = c.createOscillator(), g = c.createGain();
       o.type = 'sine'; o.frequency.value = 880; g.gain.value = .025;
       o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime + .08);
     } catch (e) {}
   }
 }
-
 window.handleGiftEvent = revealHint;
 
 function startTickTock() {
   stopTickTock();
-  playTick();
-  tickTockInterval = setInterval(playTick, 1000);                                                  }
+  playTick();                                                                                                      tickTockInterval = setInterval(playTick, 1000);
+}
 
 function stopTickTock() {
   if (tickTockInterval) {
     clearInterval(tickTockInterval);
-    tickTockInterval = null;                                                                         }
+    tickTockInterval = null;
+  }
 }
 
 function playTick() {
@@ -316,15 +315,15 @@ function playTick() {
     g.gain.value = 0.018;
     o.connect(g);
     g.connect(c.destination);
-    o.start();
-    o.stop(c.currentTime + 0.07);
+    o.start();                                                                                                       o.stop(c.currentTime + 0.07);
   } catch (e) {}
 }
 
 function connectBridge(bridgeUrl, tiktokUsername) {
   if (ws) { ws.close(); ws = null; }
   console.log('[GAME] Conectando ao bridge:', bridgeUrl);
-  ws = new WebSocket(bridgeUrl);                                                                     ws.onopen = () => {
+  ws = new WebSocket(bridgeUrl);
+  ws.onopen = () => {
     console.log('[GAME] Conectado ao bridge');
     reconnectAttempts = 0;
     setLiveStatus('connecting', 'CONECTANDO...');
@@ -384,14 +383,158 @@ function setLiveStatus(status, text) {
   txt.textContent = text || status;
 }
 
-$('start').onclick = start;                                                                        $('next').onclick = advance;
+$('start').onclick = start;
+$('next').onclick = advance;
 $('demoSend').onclick = () => {
   const m = $('demoMessage').value.trim();
   if (m) {
     handleChatMessage($('demoUser').value, m, $('demoAvatar').value.trim());
     $('demoMessage').value = '';
   }
-};                                                                                                 $('demoMessage').addEventListener('keydown', e => {
+};
+$('demoMessage').addEventListener('keydown', e => {
+  if (e.key === 'Enter') $('demoSend').click();
+  if (roundWinners.some(p => p.key === key)) return true;
+  if (roundWinners.length >= 5) return true;
+
+  const points = roundWinners.length === 0 ? 5 : 3;
+  const p = totals.get(key) || { key, name, avatar, points: 0, order: totals.size };
+  if (avatar) p.avatar = avatar;
+  p.points += points;
+  totals.set(key, p);
+  const w = { key, name: p.name, avatar: p.avatar, points };
+  roundWinners.push(w);
+
+  renderHitAvatars();
+  renderRanks();
+
+  $('message').textContent = ${name} ACERTOU! +${points} PTS;
+  $('message').className = 'message good';
+
+  return true;
+}
+
+window.handleChatMessage = (username, message, avatarUrl = '') => attempt(username, message, avatarUrl || '');
+
+function revealHint() {
+  const n = deck[index]?.name || '';
+  if (!n) return;
+
+  const letterCount = [...n].filter(c => /[A-Za-zÀ-ÿ]/.test(c)).length;
+
+  if (revealedLetters < letterCount) {
+    revealedLetters++;
+    $('hint').textContent = buildHint(deck[index].name, revealedLetters);
+    try {
+      const A = window.AudioContext || window.webkitAudioContext, c = new A(), o = c.createOscillator(), g = c.createGain();
+      o.type = 'sine'; o.frequency.value = 880; g.gain.value = .025;
+      o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime + .08);
+    } catch (e) {}
+  }
+}
+
+window.handleGiftEvent = revealHint;
+
+function startTickTock() {
+  stopTickTock();
+  playTick();
+  tickTockInterval = setInterval(playTick, 1000);
+}
+
+function stopTickTock() {
+  if (tickTockInterval) {
+    clearInterval(tickTockInterval);
+    tickTockInterval = null;
+  }
+}
+
+function playTick() {
+  try {
+    const A = window.AudioContext || window.webkitAudioContext;                                                                                     if (!A) return;
+    const c = new A(), o = c.createOscillator(), g = c.createGain();
+    o.frequency.value = 750;
+    o.type = 'sine';
+    g.gain.value = 0.018;
+    o.connect(g);
+    g.connect(c.destination);
+    o.start();
+    o.stop(c.currentTime + 0.07);
+  } catch (e) {}
+}
+
+function connectBridge(bridgeUrl, tiktokUsername) {
+  if (ws) { ws.close(); ws = null; }
+  console.log('[GAME] Conectando ao bridge:', bridgeUrl);
+  ws = new WebSocket(bridgeUrl);
+  ws.onopen = () => {
+    console.log('[GAME] Conectado ao bridge');
+    reconnectAttempts = 0;
+    setLiveStatus('connecting', 'CONECTANDO...');
+    const httpUrl = bridgeUrl.replace('wss:', 'https:').replace('ws:', 'http:');
+    fetch(httpUrl + '/connect', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: tiktokUsername })
+    }).then(r => r.json()).then(data => console.log('[GAME] Bridge:', data)).catch(err => console.error('[GAME] Erro connect:', err));
+  };
+  ws.onmessage = (event) => {
+    try {
+      handleBridgeEvent(JSON.parse(event.data));
+    } catch (e) {
+      console.error('[GAME] Parse error:', e);
+    }
+  };
+  ws.onclose = () => {
+    console.log('[GAME] Desconectado, reconectando...');
+    ws = null;
+    setLiveStatus('disconnected', 'DESCONECTADO');
+    if (reconnectAttempts < MAX_RECONNECT) {
+      reconnectAttempts++;
+      setTimeout(() => connectBridge(bridgeUrl, tiktokUsername), RECONNECT_DELAY);
+    }
+  };
+  ws.onerror = (err) => console.error('[GAME] WS error:', err);
+}
+
+function handleBridgeEvent(event) {
+  switch (event.type) {
+    case 'comment':
+      console.log('[GAME] Chat:', event.nickname, event.comment);
+      attempt(event.nickname, event.comment, event.avatar);
+      break;
+    case 'gift':
+      console.log('[GAME] Gift:', event.nickname, event.giftName, 'x' + event.count);
+      const giftCount = event.count || 1;
+      for (let i = 0; i < giftCount; i++) {
+        revealHint();
+      }
+      break;
+    case 'like':
+    case 'follow':
+    case 'share':
+      break;
+    case 'bridge_status':
+      setLiveStatus(event.status, event.reason || event.error || event.username);
+      break;
+  }
+}
+
+function setLiveStatus(status, text) {
+  const dot = $('liveDot'), txt = $('liveText');
+  if (!dot || !txt) return;
+  dot.className = 'live-dot ' + status;
+  txt.textContent = text || status;
+}
+
+$('start').onclick = start;
+$('next').onclick = advance;
+$('demoSend').onclick = () => {
+  const m = $('demoMessage').value.trim();
+  if (m) {
+    handleChatMessage($('demoUser').value, m, $('demoAvatar').value.trim());
+    $('demoMessage').value = '';
+  }
+};                                                                                                                                              $('demoMessage').addEventListener('keydown', e => {
   if (e.key === 'Enter') $('demoSend').click();
 });
 $('giftTip').onclick = revealHint;
@@ -405,280 +548,7 @@ $('pause').onclick = () => {
 };
 $('reset').onclick = () => {
   totals.clear(); avatarCache.clear();
-  start();
-  $('message').className = 'message good';
-
-  return true;
-}
-
-window.handleChatMessage = (username, message, avatarUrl = '') => attempt(username, message, avatarUrl || '');
-
-function revealHint() {
-  const n = deck[index]?.name || '';
-  if (!n) return;
-
-  const letterCount = [...n].filter(c => /[A-Za-zÀ-ÿ]/.test(c)).length;
-
-  if (revealedLetters < letterCount) {
-    revealedLetters++;
-    $('hint').textContent = buildHint(deck[index].name, revealedLetters);
-    try {
-      const A = window.AudioContext || window.webkitAudioContext, c = new A(), o = c.createOscillator(), g = c.createGain();
-      o.type = 'sine'; o.frequency.value = 880; g.gain.value = .025;
-      o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime + .08);
-    } catch (e) {}
-  }
-}
-
-window.handleGiftEvent = revealHint;
-
-function startTickTock() {
-  stopTickTock();
-  playTick();
-  tickTockInterval = setInterval(playTick, 1000);
-}
-
-function stopTickTock() {
-  if (tickTockInterval) {
-    clearInterval(tickTockInterval);
-    tickTockInterval = null;
-  }
-}
-
-function playTick() {
-  try {
-    const A = window.AudioContext || window.webkitAudioContext;
-    if (!A) return;
-    const c = new A(), o = c.createOscillator(), g = c.createGain();
-    o.frequency.value = 750;
-    o.type = 'sine';
-    g.gain.value = 0.018;
-    o.connect(g);
-    g.connect(c.destination);
-    o.start();
-    o.stop(c.currentTime + 0.07);
-  } catch (e) {}
-}
-
-function connectBridge(bridgeUrl, tiktokUsername) {
-  if (ws) { ws.close(); ws = null; }
-  console.log('[GAME] Conectando ao bridge:', bridgeUrl);
-  ws = new WebSocket(bridgeUrl);
-  ws.onopen = () => {
-    console.log('[GAME] Conectado ao bridge');
-    reconnectAttempts = 0;
-    setLiveStatus('connecting', 'CONECTANDO...');
-    const httpUrl = bridgeUrl.replace('wss:', 'https:').replace('ws:', 'http:');
-    fetch(httpUrl + '/connect', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: tiktokUsername })
-    }).then(r => r.json()).then(data => console.log('[GAME] Bridge:', data)).catch(err => console.error('[GAME] Erro connect:', err));
-  };
-  ws.onmessage = (event) => {
-    try {
-      handleBridgeEvent(JSON.parse(event.data));
-    } catch (e) {
-      console.error('[GAME] Parse error:', e);
-    }
-  };
-  ws.onclose = () => {
-    console.log('[GAME] Desconectado, reconectando...');
-    ws = null;
-    setLiveStatus('disconnected', 'DESCONECTADO');
-    if (reconnectAttempts < MAX_RECONNECT) {
-      reconnectAttempts++;
-      setTimeout(() => connectBridge(bridgeUrl, tiktokUsername), RECONNECT_DELAY);
-    }
-  };
-  ws.onerror = (err) => console.error('[GAME] WS error:', err);
-}
-
-function handleBridgeEvent(event) {
-  switch (event.type) {
-    case 'comment':
-      console.log('[GAME] Chat:', event.nickname, event.comment);
-      attempt(event.nickname, event.comment, event.avatar);
-      break;
-    case 'gift':
-      console.log('[GAME] Gift:', event.nickname, event.giftName, 'x' + event.count);
-      const giftCount = event.count || 1;
-      for (let i = 0; i < giftCount; i++) {
-        revealHint();
-      }
-      break;
-    case 'like':
-    case 'follow':
-    case 'share':
-      break;
-    case 'bridge_status':
-      setLiveStatus(event.status, event.reason || event.error || event.username);
-      break;
-  }
-}
-
-function setLiveStatus(status, text) {
-  const dot = $('liveDot'), txt = $('liveText');
-  if (!dot || !txt) return;
-  dot.className = 'live-dot ' + status;
-  txt.textContent = text || status;
-}
-
-$('start').onclick = start;
-$('next').onclick = advance;
-$('demoSend').onclick = () => {
-  const m = $('demoMessage').value.trim();
-  if (m) {
-    handleChatMessage($('demoUser').value, m, $('demoAvatar').value.trim());
-    $('demoMessage').value = '';
-  }
-};
-$('demoMessage').addEventListener('keydown', e => {
-  if (e.key === 'Enter') $('demoSend').click();
-});
-$('giftTip').onclick = revealHint;
-  $('message').className = 'message good';
-
-  return true;
-}
-
-window.handleChatMessage = (username, message, avatarUrl = '') => attempt(username, message, avatarUrl || '');
-
-function revealHint() {
-  const n = deck[index]?.name || '';
-  if (!n) return;
-
-  const letterCount = [...n].filter(c => /[A-Za-zÀ-ÿ]/.test(c)).length;
-
-  if (revealedLetters < letterCount) {
-    revealedLetters++;
-    $('hint').textContent = buildHint(deck[index].name, revealedLetters);
-    try {
-      const A = window.AudioContext || window.webkitAudioContext, c = new A(), o = c.createOscillator(), g = c.createGain();
-      o.type = 'sine'; o.frequency.value = 880; g.gain.value = .025;
-      o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime + .08);
-    } catch (e) {}
-  }
-}
-
-window.handleGiftEvent = revealHint;
-
-function startTickTock() {
-  stopTickTock();
-  playTick();
-  tickTockInterval = setInterval(playTick, 1000);
-}
-
-function stopTickTock() {
-  if (tickTockInterval) {
-    clearInterval(tickTockInterval);
-    tickTockInterval = null;
-  }
-}
-
-function playTick() {
-  try {
-    const A = window.AudioContext || window.webkitAudioContext;
-    if (!A) return;
-    const c = new A(), o = c.createOscillator(), g = c.createGain();
-    o.frequency.value = 750;
-    o.type = 'sine';
-    g.gain.value = 0.018;
-    o.connect(g);
-    g.connect(c.destination);
-    o.start();
-    o.stop(c.currentTime + 0.07);
-  } catch (e) {}
-}
-
-function connectBridge(bridgeUrl, tiktokUsername) {
-  if (ws) { ws.close(); ws = null; }
-  console.log('[GAME] Conectando ao bridge:', bridgeUrl);
-  ws = new WebSocket(bridgeUrl);
-  ws.onopen = () => {
-    console.log('[GAME] Conectado ao bridge');
-    reconnectAttempts = 0;
-    setLiveStatus('connecting', 'CONECTANDO...');
-    const httpUrl = bridgeUrl.replace('wss:', 'https:').replace('ws:', 'http:');
-    fetch(httpUrl + '/connect', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: tiktokUsername })
-    }).then(r => r.json()).then(data => console.log('[GAME] Bridge:', data)).catch(err => console.error('[GAME] Erro connect:', err));
-  };
-  ws.onmessage = (event) => {
-    try {
-      handleBridgeEvent(JSON.parse(event.data));
-    } catch (e) {
-      console.error('[GAME] Parse error:', e);
-    }
-  };
-  ws.onclose = () => {
-    console.log('[GAME] Desconectado, reconectando...');
-    ws = null;
-    setLiveStatus('disconnected', 'DESCONECTADO');
-    if (reconnectAttempts < MAX_RECONNECT) {
-      reconnectAttempts++;
-      setTimeout(() => connectBridge(bridgeUrl, tiktokUsername), RECONNECT_DELAY);
-    }
-  };
-  ws.onerror = (err) => console.error('[GAME] WS error:', err);
-}
-
-function handleBridgeEvent(event) {
-  switch (event.type) {
-    case 'comment':
-      console.log('[GAME] Chat:', event.nickname, event.comment);
-      attempt(event.nickname, event.comment, event.avatar);
-      break;
-    case 'gift':
-      console.log('[GAME] Gift:', event.nickname, event.giftName, 'x' + event.count);
-      const giftCount = event.count || 1;
-      for (let i = 0; i < giftCount; i++) {
-        revealHint();
-      }
-      break;
-    case 'like':
-    case 'follow':
-    case 'share':
-      break;
-    case 'bridge_status':
-      setLiveStatus(event.status, event.reason || event.error || event.username);
-      break;
-  }
-}
-
-function setLiveStatus(status, text) {
-  const dot = $('liveDot'), txt = $('liveText');
-  if (!dot || !txt) return;
-  dot.className = 'live-dot ' + status;
-  txt.textContent = text || status;
-}
-
-$('start').onclick = start;
-$('next').onclick = advance;
-$('demoSend').onclick = () => {
-  const m = $('demoMessage').value.trim();
-  if (m) {
-    handleChatMessage($('demoUser').value, m, $('demoAvatar').value.trim());
-    $('demoMessage').value = '';
-  }
-};
-$('demoMessage').addEventListener('keydown', e => {
-  if (e.key === 'Enter') $('demoSend').click();
-});
-$('giftTip').onclick = revealHint;                                                                                                                            $('adminToggle').onclick = () => $('admin').classList.toggle('hidden');
-$('adminClose').onclick = () => $('admin').classList.add('hidden');
-$('pause').onclick = () => {
-  paused = !paused;
-  $('pause').textContent = paused ? 'CONTINUAR' : 'PAUSAR';
-  if (paused) stopTickTock();
-  else startTickTock();
-};
-$('reset').onclick = () => {
-  totals.clear(); avatarCache.clear();
-  start();
-};
+  start();                                                                                                                                      };
 $('showAnswer').onclick = () => {
   if (!running || locked) return;
   const q = deck[index];
@@ -699,8 +569,7 @@ if (modeToggle && modeLabel) {
   modeToggle.onchange = () => {
     $('testChat').classList.toggle('hidden', !modeToggle.checked);
     modeLabel.textContent = modeToggle.checked ? 'Modo Admin (chat teste visível)' : 'Modo Normal (chat teste oculto)';
-  };
-}
+  };                                                                                                                                            }
 
 const BRIDGE_CONFIG = {
   url: 'wss://tiktokbridge.onrender.com',
