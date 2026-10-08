@@ -8,7 +8,6 @@ let tickTockInterval = null;
 let revealedLetters = 0;
 let avatarCache = new Map();
 
-
 const $ = id => document.getElementById(id);
 const norm = s => String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
 function esc(s) {
@@ -30,6 +29,7 @@ function av(p, cls = 'avatar') {
   avatarCache.set(key, html);
   return html;
 }
+
 function renderFlag() {
   const q = deck[index];
   $('flag').innerHTML = q.flagAsset ? <img src="${esc(q.flagAsset)}" alt="${esc(q.name)}"> : esc(q.flag);
@@ -77,8 +77,7 @@ function renderHitAvatars() {
 
 function buildHint(answer, revealCount = 0) {
   const chars = [...answer];
-  let out = '';
-  let revealed = 0;
+  let out = '';                                                                                                                                                 let revealed = 0;
   for (let i = 0; i < chars.length; i++) {
     const c = chars[i];
     if (/[A-Za-zÀ-ÿ]/.test(c)) {
@@ -113,7 +112,7 @@ function render() {
 }
 
 function start() {
-  clearInterval(interval); avatarCache.clear();
+  clearInterval(interval);
   deck = shuffle(COUNTRIES);
   index = 0;
   newQuestion();
@@ -131,13 +130,13 @@ function newQuestion() {
   $('message').textContent = 'VALENDO!';
   $('message').className = 'message';
 
-  const q = deck[index];
-  if (q) {
+  const q = deck[index];                                                                                                                                        if (q) {
     $('hint').textContent = buildHint(q.name, 0);
   }
 
   render();
-  interval = setInterval(tick, 1000);                                                                                                                                             running = true;
+  interval = setInterval(tick, 1000);
+  running = true;
   startTickTock();
 }
 
@@ -174,8 +173,7 @@ function showOverlay(firstOrList) {
     let html = '';
     firstOrList.forEach((w, i) => {
       const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : #${i + 1};
-      html += ${av(w, 'winner-avatar')}<div class="winner-name">${esc(w.name)}</div><div class="winner-label">${medal} — +${w.points} PTS</div>;
-      if (i < firstOrList.length - 1) html += '<hr style="margin:8px auto;width:60%;border-color:#fff3">';
+      html += ${av(w, 'winner-avatar')}<div class="winner-name">${esc(w.name)}</div><div class="winner-label">${medal} — +${w.points} PTS</div>;                    if (i < firstOrList.length - 1) html += '<hr style="margin:8px auto;width:60%;border-color:#fff3">';
     });
     $('winnerContent').innerHTML = html;
   } else {
@@ -291,8 +289,7 @@ function playTick() {
     g.connect(c.destination);
     o.start();
     o.stop(c.currentTime + 0.07);
-  } catch (e) {}
-}
+  } catch (e) {}                                                                                                                                              }
 
 function connectBridge(bridgeUrl, tiktokUsername) {
   if (ws) { ws.close(); ws = null; }
@@ -310,8 +307,7 @@ function connectBridge(bridgeUrl, tiktokUsername) {
     }).then(r => r.json()).then(data => console.log('[GAME] Bridge:', data)).catch(err => console.error('[GAME] Erro connect:', err));
   };
   ws.onmessage = (event) => {
-    try {
-      handleBridgeEvent(JSON.parse(event.data));
+    try {                                                                                                                                                           handleBridgeEvent(JSON.parse(event.data));
     } catch (e) {
       console.error('[GAME] Parse error:', e);
     }
@@ -336,7 +332,10 @@ function handleBridgeEvent(event) {
       break;
     case 'gift':
       console.log('[GAME] Gift:', event.nickname, event.giftName, 'x' + event.count);
-      revealHint();
+      const giftCount = event.count || 1;
+      for (let i = 0; i < giftCount; i++) {
+        revealHint();
+      }
       break;
     case 'like':
     case 'follow':
@@ -367,15 +366,17 @@ $('demoSend').onclick = () => {
 $('demoMessage').addEventListener('keydown', e => {
   if (e.key === 'Enter') $('demoSend').click();
 });
-$('giftTip').onclick = revealHint;                                                                                                                                              $('adminToggle').onclick = () => $('admin').classList.toggle('hidden');
+$('giftTip').onclick = revealHint;
+$('adminToggle').onclick = () => $('admin').classList.toggle('hidden');
 $('adminClose').onclick = () => $('admin').classList.add('hidden');
-$('pause').onclick = () => {                                                                                                                                                      paused = !paused;
+$('pause').onclick = () => {
+  paused = !paused;
   $('pause').textContent = paused ? 'CONTINUAR' : 'PAUSAR';
   if (paused) stopTickTock();
   else startTickTock();
 };
 $('reset').onclick = () => {
-  totals.clear(); avatarCache.clear();
+  totals.clear();
   start();
 };
 $('showAnswer').onclick = () => {
@@ -402,18 +403,16 @@ if (modeToggle && modeLabel) {
 }
 
 const BRIDGE_CONFIG = {
-  url: 'wss://tiktokbriedge.onrender.com',                                                                                                                                        tiktokUsername: 'ilustramichael'
+  url: 'wss://tiktokbridge.onrender.com',
+  tiktokUsername: 'truecrimevideosreal'
 };
 
-if (BRIDGE_CONFIG.url !== 'wss://SEU_BRIDGE.onrender.com') {
-  connectBridge(BRIDGE_CONFIG.url, BRIDGE_CONFIG.tiktokUsername);
+if (BRIDGE_CONFIG.url !== 'wss://SEU_BRIDGE.onrender.com') {                                                                                                    connectBridge(BRIDGE_CONFIG.url, BRIDGE_CONFIG.tiktokUsername);
 } else {
   console.log('[GAME] Configure BRIDGE_CONFIG no game.js com sua URL do Render e @ do streamer');
 }
 
 if (window.COUNTRIES?.length) {
   deck = shuffle(COUNTRIES);
-  renderFlag();
-  $('hint').textContent = buildHint(deck[index].name, 0);
   render();
 }
