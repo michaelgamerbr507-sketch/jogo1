@@ -405,7 +405,7 @@ if (modeToggle && modeLabel) {
 }
 
 const BRIDGE_CONFIG = {
-  url: 'wss://tiktokbridge.onrender.com',
+  url: 'wss://'https://jogo3-e6uq.onrender.com',
   tiktokUsername: 'truecrimevideosreal'
 };
 
