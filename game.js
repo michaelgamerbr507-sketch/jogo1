@@ -21,18 +21,18 @@ function shuffle(a) { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const
 function av(p, cls = 'avatar') {
   const key = p.userId || p.key || p.name;
   if (avatarCache.has(key)) return avatarCache.get(key);
-  
-  const html = p.avatar 
-    ? `<img class="${cls}" src="${esc(p.avatar)}" alt="" loading="lazy">` 
-    : `<span class="${cls} avatar-fallback">${esc((p.name || '??').replace('@', '').slice(0, 2).toUpperCase())}</span>`;
-  
+
+  const html = p.avatar
+    ? <img class="${cls}" src="${esc(p.avatar)}" alt="" loading="lazy">
+    : <span class="${cls} avatar-fallback">${esc((p.name || '??').replace('@', '').slice(0, 2).toUpperCase())}</span>;
+
   avatarCache.set(key, html);
   return html;
 }
 
 function renderFlag() {
   const q = deck[index];
-  $('flag').innerHTML = q.flagAsset ? `<img src="${esc(q.flagAsset)}" alt="${esc(q.name)}" width="180" height="120">` : esc(q.flag);
+  $('flag').innerHTML = q.flagAsset ? <img src="${esc(q.flagAsset)}" alt="${esc(q.name)}"> : esc(q.flag);
 }
 
 function renderAttempts() {
@@ -44,7 +44,7 @@ function renderAttempts() {
 }
 
 function row(p, i, pts) {
-  return `<div class="row"><span class="pos">#${i + 1}</span>${av(p)}<span class="name">${esc(p.name)}</span><span class="pts">${pts} PTS</span></div>`;
+  return <div class="row"><span class="pos">#${i + 1}</span>${av(p)}<span class="name">${esc(p.name)}</span><span class="pts">${pts} PTS</span></div>;
 }
 
 function renderRanks() {
@@ -56,20 +56,18 @@ function renderRanks() {
 
 function renderHitAvatars() {
   const hitAvatars = $('hitAvatars');
-  const hitCount = $('hitCount');
-  if (!hitAvatars) return;
-  
+  const hitCount = $('hitCount');                                                                                                                               if (!hitAvatars) return;                                                                                                                                    
   if (roundWinners.length === 0) {
     hitAvatars.innerHTML = '';
     if (hitCount) hitCount.textContent = 0;
     return;
   }
-  
+
   if (hitCount) hitCount.textContent = roundWinners.length;
-  
-  hitAvatars.innerHTML = roundWinners.map(w => 
+
+  hitAvatars.innerHTML = roundWinners.map(w =>
     `<div class="hit-avatar-wrap">
-      ${w.avatar ? `<img class="hit-avatar" src="${esc(w.avatar)}" alt="">` : `<span class="hit-avatar hit-avatar-fallback">${esc(w.name.replace('@', '').slice(0, 2).toUpperCase())}</span>`}
+      ${w.avatar ? <img class="hit-avatar" src="${esc(w.avatar)}" alt=""> : <span class="hit-avatar hit-avatar-fallback">${esc(w.name.replace('@', '').slice(0, 2).toUpperCase())}</span>}
       <span class="hit-name">${esc(w.name)}</span>
     </div>`
   ).join('');
@@ -82,8 +80,7 @@ function buildHint(answer, revealCount = 0) {
   for (let i = 0; i < chars.length; i++) {
     const c = chars[i];
     if (/[A-Za-zÀ-ÿ]/.test(c)) {
-      if (revealed < revealCount) {
-        out += c.toUpperCase();
+      if (revealed < revealCount) {                                                                                                                                   out += c.toUpperCase();
         revealed++;
       } else {
         out += '_';
@@ -100,12 +97,12 @@ function render() {
   $('roundNumber').textContent = index + 1;
   $('roundTotal').textContent = deck.length;
   $('timer').textContent = time;
-  $('progressBar').style.width = `${Math.max(0, time / ROUND_TIME * 100)}%`;
+  $('progressBar').style.width = ${Math.max(0, time / ROUND_TIME * 100)}%;
   renderFlag();
   renderAttempts();
   renderRanks();
   renderHitAvatars();
-  
+
   const hintEl = $('hint');
   if (hintEl && deck[index]) {
     hintEl.textContent = buildHint(deck[index].name, revealedLetters);
@@ -113,7 +110,7 @@ function render() {
 }
 
 function start() {
-  clearInterval(interval); avatarCache.clear();
+  clearInterval(interval);
   deck = shuffle(COUNTRIES);
   index = 0;
   newQuestion();
@@ -123,19 +120,18 @@ function newQuestion() {
   clearInterval(interval);
   attempts.clear();
   roundWinners = [];
-  locked = false;
-  paused = false;
+  locked = false;                                                                                                                                               paused = false;
   time = ROUND_TIME;
   revealedLetters = 0;
   $('hint').textContent = '';
   $('message').textContent = 'VALENDO!';
   $('message').className = 'message';
-  
+
   const q = deck[index];
   if (q) {
     $('hint').textContent = buildHint(q.name, 0);
   }
-  
+
   render();
   interval = setInterval(tick, 1000);
   running = true;
@@ -144,10 +140,10 @@ function newQuestion() {
 
 function tick() {
   if (paused || locked) return;
-  
+
   time = Math.max(0, time - 1);
   render();
-  
+
   if (time === 0) {
     clearInterval(interval);
     interval = null;
@@ -169,66 +165,18 @@ function timeUp() {
   }
 }
 
-function showOverlay(winners) {
+function showOverlay(firstOrList) {
   const ov = $('winnerOverlay');
-  const q = deck[index];
-  const countryName = q ? q.name.toUpperCase() : '';
-  const winnerCount = winners.length;
-  
-  if (winners && winners.length > 0) {
-    // Primeiro lugar (destaque no centro)
-    const first = winners[0];
-    const firstHtml = `
-      <div class="winner-first">
-        ${av(first, 'winner-avatar-first')}
-        <div class="winner-name-first">${esc(first.name)}</div>
-        <div class="winner-label-first">🥇 PRIMEIRO — +${first.points} PTS</div>
-      </div>
-    `;
-    
-    // Demais vencedores (2º em diante) em fila horizontal
-    const others = winners.slice(1);
-    let othersHtml = '';
-    if (others.length > 0) {
-      othersHtml = `
-        <div class="winner-others-row">
-          ${others.map((w, i) => {
-            const pos = i + 2;
-            const medal = pos === 2 ? '🥈' : pos === 3 ? '🥉' : `#${pos}`;
-            // 2º lugar em diante: todos ganham 3 pontos (mesmo do 2º)
-            const displayPoints = pos === 2 ? w.points : 3;
-            return `
-              <div class="winner-other">
-                ${av(w, 'winner-avatar-other')}
-                <div class="winner-name-other">${esc(w.name)}</div>
-                <div class="winner-label-other">${medal} — +${displayPoints} PTS</div>
-              </div>
-            `;
-          }).join('')}
-        </div>
-      `;
-    }
-    
-    // Header com resposta e número de acertos
-    const headerHtml = `
-      <div class="winner-header">
-        <div class="winner-answer-text">A RESPOSTA ERA: <strong>${esc(countryName)}</strong></div>
-        <div class="winner-count-text">${winnerCount} ACERTO${winnerCount !== 1 ? 'S' : ''}</div>
-      </div>
-    `;
-    
-    $('winnerContent').innerHTML = headerHtml + firstHtml + othersHtml;
+  if (firstOrList && firstOrList.length > 0) {
+    let html = '';
+    firstOrList.forEach((w, i) => {
+      const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : #${i + 1};
+      html += ${av(w, 'winner-avatar')}<div class="winner-name">${esc(w.name)}</div><div class="winner-label">${medal} — +${w.points} PTS</div>;
+      if (i < firstOrList.length - 1) html += '<hr style="margin:8px auto;width:60%;border-color:#fff3">';
+    });                                                                                                                                                           $('winnerContent').innerHTML = html;
   } else {
-    $('winnerContent').innerHTML = `
-      <div class="winner-header">
-        <div class="winner-answer-text">A RESPOSTA ERA: <strong>${esc(countryName)}</strong></div>
-        <div class="winner-count-text">NINGUÉM ACERTOU</div>
-      </div>
-      <div class="winner-fallback">!</div>
-      <div class="winner-name">NINGUÉM ACERTOU</div>
-    `;
+    $('winnerContent').innerHTML = '<div class="winner-fallback">!</div><div class="winner-name">NINGUEM ACERTOU</div><div class="winner-label">A RESPOSTA ERA</div><div class="winner-answer">' + esc(deck[index].name.toUpperCase()) + '</div>';
   }
-  
   $('winnerOverlay').classList.add('show');
   let n = 3;
   $('nextCountdown').textContent = n;
@@ -255,7 +203,7 @@ function advance() {
 function addChat(p, message) {
   const el = document.createElement('div');
   el.className = 'chat-msg';
-  el.innerHTML = p.avatar ? `<img src="${esc(p.avatar)}" alt=""><b>${esc(p.name)}</b><span>${esc(message)}</span>` : `<b>${esc(p.name)}</b><span>${esc(message)}</span>`;
+  el.innerHTML = p.avatar ? <img src="${esc(p.avatar)}" alt=""><b>${esc(p.name)}</b><span>${esc(message)}</span> : <b>${esc(p.name)}</b><span>${esc(message)}</span>;
   $('chatList').prepend(el);
   while ($('chatList').children.length > 4) $('chatList').lastChild.remove();
 }
@@ -275,33 +223,30 @@ function attempt(username, message, avatar = '') {
   if (!correct) return false;
   if (roundWinners.some(p => p.key === key)) return true;
   if (roundWinners.length >= 5) return true;
-  
-  // Pontuação: 1º=5, 2º em diante=3
-  const points = roundWinners.length === 0 ? 5 : 3;
+
+  const points = [5, 3, 2, 1, 1][roundWinners.length];
   const p = totals.get(key) || { key, name, avatar, points: 0, order: totals.size };
   if (avatar) p.avatar = avatar;
   p.points += points;
   totals.set(key, p);
   const w = { key, name: p.name, avatar: p.avatar, points };
   roundWinners.push(w);
-  
+
   renderHitAvatars();
   renderRanks();
-  
-  $('message').textContent = `${name} ACERTOU! +${points} PTS`;
+
+  $('message').textContent = ${name} ACERTOU! +${points} PTS;
   $('message').className = 'message good';
-  
+
   return true;
 }
 
 window.handleChatMessage = (username, message, avatarUrl = '') => attempt(username, message, avatarUrl || '');
 
 function revealHint() {
-  const n = deck[index]?.name || '';
-  if (!n) return;
-  
-  const letterCount = [...n].filter(c => /[A-Za-zÀ-ÿ]/.test(c)).length;
-  
+  const n = deck[index]?.name || '';                                                                                                                            if (!n) return;
+
+  const letterCount = [...n].filter(c => /[A-Za-zÀ-ÿ]/.test(c)).length;                                                                                       
   if (revealedLetters < letterCount) {
     revealedLetters++;
     $('hint').textContent = buildHint(deck[index].name, revealedLetters);
@@ -335,8 +280,7 @@ function playTick() {
     const c = new A(), o = c.createOscillator(), g = c.createGain();
     o.frequency.value = 750;
     o.type = 'sine';
-    g.gain.value = 0.018;
-    o.connect(g);
+    g.gain.value = 0.018;                                                                                                                                         o.connect(g);
     g.connect(c.destination);
     o.start();
     o.stop(c.currentTime + 0.07);
@@ -364,8 +308,7 @@ function connectBridge(bridgeUrl, tiktokUsername) {
     } catch (e) {
       console.error('[GAME] Parse error:', e);
     }
-  };
-  ws.onclose = () => {
+  };                                                                                                                                                            ws.onclose = () => {
     console.log('[GAME] Desconectado, reconectando...');
     ws = null;
     setLiveStatus('disconnected', 'DESCONECTADO');
@@ -385,11 +328,7 @@ function handleBridgeEvent(event) {
       break;
     case 'gift':
       console.log('[GAME] Gift:', event.nickname, event.giftName, 'x' + event.count);
-      // 1 presente = 1 letra revelada (para cada unidade do gift)
-      const giftCount = event.count || 1;
-      for (let i = 0; i < giftCount; i++) {
-        revealHint();
-      }
+      revealHint();
       break;
     case 'like':
     case 'follow':
@@ -430,7 +369,7 @@ $('pause').onclick = () => {
   else startTickTock();
 };
 $('reset').onclick = () => {
-  totals.clear(); avatarCache.clear();
+  totals.clear();
   start();
 };
 $('showAnswer').onclick = () => {
@@ -438,7 +377,7 @@ $('showAnswer').onclick = () => {
   const q = deck[index];
   if (!q) return;
   $('hint').textContent = q.name.toUpperCase();
-  $('message').textContent = `RESPOSTA REVELADA: ${q.name.toUpperCase()}`;
+  $('message').textContent = RESPOSTA REVELADA: ${q.name.toUpperCase()};
   $('message').className = 'message timeout';
 };
 $('timeInput').onchange = e => {
@@ -452,7 +391,7 @@ if (modeToggle && modeLabel) {
   modeToggle.checked = true;
   modeToggle.onchange = () => {
     $('testChat').classList.toggle('hidden', !modeToggle.checked);
-    modeLabel.textContent = modeToggle.checked ? 'Modo Admin (chat teste visível)' : 'Modo Normal (chat teste oculto)';
+    modeLabel.textContent = modeToggle.checked ? 'Modo Desenvolvimento (chat teste visivel)' : 'Modo Normal (chat teste oculto)';
   };
 }
 
@@ -461,7 +400,7 @@ const BRIDGE_CONFIG = {
   tiktokUsername: 'truecrimevideosreal'
 };
 
-if (BRIDGE_CONFIG.url && BRIDGE_CONFIG.url !== 'wss://SEU_BRIDGE.onrender.com') {
+if (BRIDGE_CONFIG.url !== 'wss://SEU_BRIDGE.onrender.com') {
   connectBridge(BRIDGE_CONFIG.url, BRIDGE_CONFIG.tiktokUsername);
 } else {
   console.log('[GAME] Configure BRIDGE_CONFIG no game.js com sua URL do Render e @ do streamer');
@@ -469,7 +408,5 @@ if (BRIDGE_CONFIG.url && BRIDGE_CONFIG.url !== 'wss://SEU_BRIDGE.onrender.com') 
 
 if (window.COUNTRIES?.length) {
   deck = shuffle(COUNTRIES);
-  renderFlag();
-  $('hint').textContent = buildHint(deck[index].name, 0);
   render();
 }
