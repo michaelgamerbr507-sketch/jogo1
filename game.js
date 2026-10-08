@@ -5,8 +5,8 @@ let attempts = new Map(), roundWinners = [], totalPlayers = new Map(), totals = 
 let ws = null, reconnectAttempts = 0;
 const MAX_RECONNECT = 10, RECONNECT_DELAY = 5000;
 let tickTockInterval = null;
-let revealedLetters = 0;let avatarCache = new Map();
-
+let revealedLetters = 0;
+let avatarCache = new Map();
 
 const $ = id => document.getElementById(id);
 const norm = s => String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
@@ -21,17 +21,18 @@ function shuffle(a) { a = [...a]; for (let i = a.length - 1; i > 0; i--) { const
 function av(p, cls = 'avatar') {
   const key = p.userId || p.key || p.name;
   if (avatarCache.has(key)) return avatarCache.get(key);
-  
-  const html = p.avatar 
-    ? `<img class="${cls}" src="${esc(p.avatar)}" alt="" loading="lazy">` 
-    : `<span class="${cls} avatar-fallback">${esc((p.name || '??').replace('@', '').slice(0, 2).toUpperCase())}</span>`;
-  
+
+  const html = p.avatar
+    ? <img class="${cls}" src="${esc(p.avatar)}" alt="" loading="lazy">
+    : <span class="${cls} avatar-fallback">${esc((p.name || '??').replace('@', '').slice(0, 2).toUpperCase())}</span>;
+
   avatarCache.set(key, html);
   return html;
 }
+
 function renderFlag() {
   const q = deck[index];
-  $('flag').innerHTML = q.flagAsset ? `<img src="${esc(q.flagAsset)}" alt="${esc(q.name)}">` : esc(q.flag);
+  $('flag').innerHTML = q.flagAsset ? <img src="${esc(q.flagAsset)}" alt="${esc(q.name)}"> : esc(q.flag);
 }
 
 function renderAttempts() {
@@ -43,7 +44,7 @@ function renderAttempts() {
 }
 
 function row(p, i, pts) {
-  return `<div class="row"><span class="pos">#${i + 1}</span>${av(p)}<span class="name">${esc(p.name)}</span><span class="pts">${pts} PTS</span></div>`;
+  return <div class="row"><span class="pos">#${i + 1}</span>${av(p)}<span class="name">${esc(p.name)}</span><span class="pts">${pts} PTS</span></div>;
 }
 
 function renderRanks() {
@@ -57,18 +58,18 @@ function renderHitAvatars() {
   const hitAvatars = $('hitAvatars');
   const hitCount = $('hitCount');
   if (!hitAvatars) return;
-  
+
   if (roundWinners.length === 0) {
     hitAvatars.innerHTML = '';
     if (hitCount) hitCount.textContent = 0;
     return;
   }
-  
+
   if (hitCount) hitCount.textContent = roundWinners.length;
-  
-  hitAvatars.innerHTML = roundWinners.map(w => 
+
+  hitAvatars.innerHTML = roundWinners.map(w =>
     `<div class="hit-avatar-wrap">
-      ${w.avatar ? `<img class="hit-avatar" src="${esc(w.avatar)}" alt="">` : `<span class="hit-avatar hit-avatar-fallback">${esc(w.name.replace('@', '').slice(0, 2).toUpperCase())}</span>`}
+      ${w.avatar ? <img class="hit-avatar" src="${esc(w.avatar)}" alt=""> : <span class="hit-avatar hit-avatar-fallback">${esc(w.name.replace('@', '').slice(0, 2).toUpperCase())}</span>}
       <span class="hit-name">${esc(w.name)}</span>
     </div>`
   ).join('');
@@ -99,12 +100,12 @@ function render() {
   $('roundNumber').textContent = index + 1;
   $('roundTotal').textContent = deck.length;
   $('timer').textContent = time;
-  $('progressBar').style.width = `${Math.max(0, time / ROUND_TIME * 100)}%`;
+  $('progressBar').style.width = ${Math.max(0, time / ROUND_TIME * 100)}%;
   renderFlag();
   renderAttempts();
   renderRanks();
   renderHitAvatars();
-  
+
   const hintEl = $('hint');
   if (hintEl && deck[index]) {
     hintEl.textContent = buildHint(deck[index].name, revealedLetters);
@@ -129,12 +130,12 @@ function newQuestion() {
   $('hint').textContent = '';
   $('message').textContent = 'VALENDO!';
   $('message').className = 'message';
-  
+
   const q = deck[index];
   if (q) {
     $('hint').textContent = buildHint(q.name, 0);
   }
-  
+
   render();
   interval = setInterval(tick, 1000);
   running = true;
@@ -143,10 +144,10 @@ function newQuestion() {
 
 function tick() {
   if (paused || locked) return;
-  
+
   time = Math.max(0, time - 1);
   render();
-  
+
   if (time === 0) {
     clearInterval(interval);
     interval = null;
@@ -168,19 +169,62 @@ function timeUp() {
   }
 }
 
-function showOverlay(firstOrList) {
+function showOverlay(winners) {
   const ov = $('winnerOverlay');
-  if (firstOrList && firstOrList.length > 0) {
-    let html = '';
-    firstOrList.forEach((w, i) => {
-      const medal = i === 0 ? 'ðŸ¥‡' : i === 1 ? 'ðŸ¥ˆ' : i === 2 ? 'ðŸ¥‰' : `#${i + 1}`;
-      html += `${av(w, 'winner-avatar')}<div class="winner-name">${esc(w.name)}</div><div class="winner-label">${medal} â€” +${w.points} PTS</div>`;
-      if (i < firstOrList.length - 1) html += '<hr style="margin:8px auto;width:60%;border-color:#fff3">';
-    });
-    $('winnerContent').innerHTML = html;
+  const q = deck[index];
+  const countryName = q ? q.name.toUpperCase() : '';
+  const winnerCount = winners.length;
+
+  if (winners && winners.length > 0) {
+    const first = winners[0];
+    const firstHtml = `
+      <div class="winner-first">
+        ${av(first, 'winner-avatar-first')}
+        <div class="winner-name-first">${esc(first.name)}</div>
+        <div class="winner-label-first">🥇 PRIMEIRO — +${first.points} PTS</div>
+      </div>
+    `;
+
+    const others = winners.slice(1);
+    let othersHtml = '';
+    if (others.length > 0) {
+      othersHtml = `
+        <div class="winner-others-row">
+          ${others.map((w, i) => {
+            const pos = i + 2;
+            const medal = pos === 2 ? '🥈' : pos === 3 ? '🥉' : #${pos};
+            const displayPoints = pos === 2 ? w.points : 3;
+            return `
+              <div class="winner-other">
+                ${av(w, 'winner-avatar-other')}
+                <div class="winner-name-other">${esc(w.name)}</div>
+                <div class="winner-label-other">${medal} — +${displayPoints} PTS</div>
+              </div>
+            `;
+          }).join('')}
+        </div>
+      `;
+    }
+
+    const headerHtml = `
+      <div class="winner-header">
+        <div class="winner-answer-text">A RESPOSTA ERA: <strong>${esc(countryName)}</strong></div>
+        <div class="winner-count-text">${winnerCount} ACERTO${winnerCount !== 1 ? 'S' : ''}</div>
+      </div>
+    `;
+
+    $('winnerContent').innerHTML = headerHtml + firstHtml + othersHtml;
   } else {
-    $('winnerContent').innerHTML = '<div class="winner-fallback">!</div><div class="winner-name">NINGUEM ACERTOU</div><div class="winner-label">A RESPOSTA ERA</div><div class="winner-answer">' + esc(deck[index].name.toUpperCase()) + '</div>';
+    $('winnerContent').innerHTML = `
+      <div class="winner-header">
+        <div class="winner-answer-text">A RESPOSTA ERA: <strong>${esc(countryName)}</strong></div>
+        <div class="winner-count-text">NINGUÉM ACERTOU</div>
+      </div>
+      <div class="winner-fallback">!</div>
+      <div class="winner-name">NINGUÉM ACERTOU</div>
+    `;
   }
+
   $('winnerOverlay').classList.add('show');
   let n = 3;
   $('nextCountdown').textContent = n;
@@ -207,7 +251,7 @@ function advance() {
 function addChat(p, message) {
   const el = document.createElement('div');
   el.className = 'chat-msg';
-  el.innerHTML = p.avatar ? `<img src="${esc(p.avatar)}" alt=""><b>${esc(p.name)}</b><span>${esc(message)}</span>` : `<b>${esc(p.name)}</b><span>${esc(message)}</span>`;
+  el.innerHTML = p.avatar ? <img src="${esc(p.avatar)}" alt=""><b>${esc(p.name)}</b><span>${esc(message)}</span> : <b>${esc(p.name)}</b><span>${esc(message)}</span>;
   $('chatList').prepend(el);
   while ($('chatList').children.length > 4) $('chatList').lastChild.remove();
 }
@@ -226,22 +270,20 @@ function attempt(username, message, avatar = '') {
   const correct = [q.name, ...(q.aliases || [])].map(norm).includes(norm(message));
   if (!correct) return false;
   if (roundWinners.some(p => p.key === key)) return true;
-  if (roundWinners.length >= 5) return true;
-  
-  const points = [5, 3, 2, 1, 1][roundWinners.length];
+  if (roundWinners.length >= 5) return true;                                                                     
+  const points = roundWinners.length === 0 ? 5 : 3;
   const p = totals.get(key) || { key, name, avatar, points: 0, order: totals.size };
   if (avatar) p.avatar = avatar;
   p.points += points;
   totals.set(key, p);
   const w = { key, name: p.name, avatar: p.avatar, points };
   roundWinners.push(w);
-  
-  renderHitAvatars();
+                                                                                                                   renderHitAvatars();
   renderRanks();
-  
-  $('message').textContent = `${name} ACERTOU! +${points} PTS`;
+
+  $('message').textContent = ${name} ACERTOU! +${points} PTS;
   $('message').className = 'message good';
-  
+
   return true;
 }
 
@@ -250,9 +292,9 @@ window.handleChatMessage = (username, message, avatarUrl = '') => attempt(userna
 function revealHint() {
   const n = deck[index]?.name || '';
   if (!n) return;
-  
+
   const letterCount = [...n].filter(c => /[A-Za-zÀ-ÿ]/.test(c)).length;
-  
+
   if (revealedLetters < letterCount) {
     revealedLetters++;
     $('hint').textContent = buildHint(deck[index].name, revealedLetters);
@@ -265,26 +307,6 @@ function revealHint() {
 }
 
 window.handleGiftEvent = revealHint;
-
-function buildHint(answer, revealCount = 0) {
-  const chars = [...answer];
-  let out = '';
-  let revealed = 0;
-  for (let i = 0; i < chars.length; i++) {
-    const c = chars[i];
-    if (/[A-Za-zÀ-ÿ]/.test(c)) {
-      if (revealed < revealCount) {
-        out += c.toUpperCase();
-        revealed++;
-      } else {
-        out += '_';
-      }
-    } else {
-      out += c === ' ' ? '  ' : c;
-    }
-  }
-  return out;
-}
 
 function startTickTock() {
   stopTickTock();
@@ -334,8 +356,7 @@ function connectBridge(bridgeUrl, tiktokUsername) {
       handleBridgeEvent(JSON.parse(event.data));
     } catch (e) {
       console.error('[GAME] Parse error:', e);
-    }
-  };
+    }                                                                                                              };
   ws.onclose = () => {
     console.log('[GAME] Desconectado, reconectando...');
     ws = null;
@@ -356,7 +377,10 @@ function handleBridgeEvent(event) {
       break;
     case 'gift':
       console.log('[GAME] Gift:', event.nickname, event.giftName, 'x' + event.count);
-      revealHint();
+      const giftCount = event.count || 1;
+      for (let i = 0; i < giftCount; i++) {
+        revealHint();
+      }
       break;
     case 'like':
     case 'follow':
@@ -403,9 +427,7 @@ $('reset').onclick = () => {
 $('showAnswer').onclick = () => {
   if (!running || locked) return;
   const q = deck[index];
-  if (!q) return;
-  $('hint').textContent = q.name.toUpperCase();
-  $('message').textContent = `RESPOSTA REVELADA: ${q.name.toUpperCase()}`;
+  if (!q) return;                                                                                                  $('hint').textContent = q.name.toUpperCase();                                                                    $('message').textContent = RESPOSTA REVELADA: ${q.name.toUpperCase()};
   $('message').className = 'message timeout';
 };
 $('timeInput').onchange = e => {
@@ -419,13 +441,13 @@ if (modeToggle && modeLabel) {
   modeToggle.checked = true;
   modeToggle.onchange = () => {
     $('testChat').classList.toggle('hidden', !modeToggle.checked);
-    modeLabel.textContent = modeToggle.checked ? 'Modo Admin (chat teste visivel)' : 'Modo Normal (chat teste oculto)';
+    modeLabel.textContent = modeToggle.checked ? 'Modo Admin (chat teste visível)' : 'Modo Normal (chat teste oculto)';
   };
 }
 
 const BRIDGE_CONFIG = {
   url: 'wss://tiktokbriedge.onrender.com',
-  tiktokUsername: 'ilustramichael'
+  tiktokUsername: 'truecrimevideosreal'
 };
 
 if (BRIDGE_CONFIG.url !== 'wss://SEU_BRIDGE.onrender.com') {
