@@ -32,9 +32,7 @@ function av(p, cls = 'avatar') {
 
 function renderFlag() {
   const q = deck[index];
-  $('flag').innerHTML = q.flagAsset
-    ? <img src="${esc(q.flagAsset)}" alt="${esc(q.name)}" width="180" height="120">
-    : esc(q.flag);
+  $('flag').innerHTML = q.flagAsset ? <img src="${esc(q.flagAsset)}" alt="${esc(q.name)}" width="180" height="120"> : esc(q.flag);
 }
 
 function renderAttempts() {
@@ -114,16 +112,14 @@ function render() {
   }
 }
 
-function start() {
-  clearInterval(interval); avatarCache.clear();
+function start() {                                                                                                          clearInterval(interval); avatarCache.clear();
   deck = shuffle(COUNTRIES);
   index = 0;
   newQuestion();
 }
 
 function newQuestion() {
-  clearInterval(interval);
-  attempts.clear();
+  clearInterval(interval);                                                                                                  attempts.clear();
   roundWinners = [];
   locked = false;
   paused = false;
@@ -171,15 +167,14 @@ function timeUp() {
   }
 }
 
-function showOverlay(winners) {
-  const ov = $('winnerOverlay');
+function showOverlay(winners) {                                                                                             const ov = $('winnerOverlay');
   const q = deck[index];
   const countryName = q ? q.name.toUpperCase() : '';
   const winnerCount = winners.length;
 
   if (winners && winners.length > 0) {
-    const first = winners[0];
-    const firstHtml = `
+    // Primeiro lugar (destaque no centro)
+    const first = winners[0];                                                                                                 const firstHtml = `
       <div class="winner-first">
         ${av(first, 'winner-avatar-first')}
         <div class="winner-name-first">${esc(first.name)}</div>
@@ -187,13 +182,16 @@ function showOverlay(winners) {
       </div>
     `;
 
+    // Demais vencedores (2º em diante) em fila horizontal
     const others = winners.slice(1);
     let othersHtml = '';
     if (others.length > 0) {
       othersHtml = `
-        <div class="winner-others-row">                                                                                                                   ${others.map((w, i) => {
+        <div class="winner-others-row">
+          ${others.map((w, i) => {
             const pos = i + 2;
             const medal = pos === 2 ? '🥈' : pos === 3 ? '🥉' : #${pos};
+            // 2º lugar em diante: todos ganham 3 pontos (mesmo do 2º)
             const displayPoints = pos === 2 ? w.points : 3;
             return `
               <div class="winner-other">
@@ -201,22 +199,19 @@ function showOverlay(winners) {
                 <div class="winner-name-other">${esc(w.name)}</div>
                 <div class="winner-label-other">${medal} — +${displayPoints} PTS</div>
               </div>
-  💾 Self-improvement review: Patched SKILL.md in skill 'tiktok-live-game-dev' (1 replacement).
             `;
           }).join('')}
         </div>
       `;
     }
-
+                                                                                                                              // Header com resposta e número de acertos
     const headerHtml = `
       <div class="winner-header">
         <div class="winner-answer-text">A RESPOSTA ERA: <strong>${esc(countryName)}</strong></div>
         <div class="winner-count-text">${winnerCount} ACERTO${winnerCount !== 1 ? 'S' : ''}</div>
-      </div>
-    `;
+      </div>                                                                                                                  `;
 
-    $('winnerContent').innerHTML = headerHtml + firstHtml + othersHtml;
-  } else {
+    $('winnerContent').innerHTML = headerHtml + firstHtml + othersHtml;                                                     } else {
     $('winnerContent').innerHTML = `
       <div class="winner-header">
         <div class="winner-answer-text">A RESPOSTA ERA: <strong>${esc(countryName)}</strong></div>
@@ -234,8 +229,7 @@ function showOverlay(winners) {
     n--;
     $('nextCountdown').textContent = Math.max(n, 0);
     if (n <= 0) {
-      clearInterval(t);
-      $('winnerOverlay').classList.remove('show');
+      clearInterval(t);                                                                                                         $('winnerOverlay').classList.remove('show');
       advance();
     }
   }, 1000);
@@ -261,7 +255,8 @@ function addChat(p, message) {
 function attempt(username, message, avatar = '') {
   if (!running || locked) return false;
   const name = String(username || '@Jogador').startsWith('@') ? String(username) : '@' + String(username);
-  const key = norm(name);                                                                                                                         const pAttempt = { key, name, avatar };
+  const key = norm(name);
+  const pAttempt = { key, name, avatar };
   addChat(pAttempt, message);
   if (!attempts.has(key)) {
     attempts.set(key, pAttempt);
@@ -270,8 +265,10 @@ function attempt(username, message, avatar = '') {
   const q = deck[index];
   const correct = [q.name, ...(q.aliases || [])].map(norm).includes(norm(message));
   if (!correct) return false;
-  if (roundWinners.some(p => p.key === key)) return true;                                                                                         if (roundWinners.length >= 5) return true;
+  if (roundWinners.some(p => p.key === key)) return true;
+  if (roundWinners.length >= 5) return true;
 
+  // Pontuação: 1º=5, 2º em diante=3
   const points = roundWinners.length === 0 ? 5 : 3;
   const p = totals.get(key) || { key, name, avatar, points: 0, order: totals.size };
   if (avatar) p.avatar = avatar;
@@ -316,14 +313,16 @@ function startTickTock() {
   tickTockInterval = setInterval(playTick, 1000);
 }
 
-function stopTickTock() {                                                                                                                         if (tickTockInterval) {
+function stopTickTock() {
+  if (tickTockInterval) {
     clearInterval(tickTockInterval);
     tickTockInterval = null;
   }
 }
 
 function playTick() {
-  try {                                                                                                                                             const A = window.AudioContext || window.webkitAudioContext;
+  try {
+    const A = window.AudioContext || window.webkitAudioContext;
     if (!A) return;
     const c = new A(), o = c.createOscillator(), g = c.createGain();
     o.frequency.value = 750;
@@ -348,7 +347,7 @@ function connectBridge(bridgeUrl, tiktokUsername) {
     fetch(httpUrl + '/connect', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: tiktokUsername })                                                                                            }).then(r => r.json()).then(data => console.log('[GAME] Bridge:', data)).catch(err => console.error('[GAME] Erro connect:', err));
+      body: JSON.stringify({ username: tiktokUsername })                                                                      }).then(r => r.json()).then(data => console.log('[GAME] Bridge:', data)).catch(err => console.error('[GAME] Erro connect:', err));
   };
   ws.onmessage = (event) => {
     try {
@@ -358,7 +357,8 @@ function connectBridge(bridgeUrl, tiktokUsername) {
     }
   };
   ws.onclose = () => {
-    console.log('[GAME] Desconectado, reconectando...');                                                                                            ws = null;
+    console.log('[GAME] Desconectado, reconectando...');
+    ws = null;
     setLiveStatus('disconnected', 'DESCONECTADO');
     if (reconnectAttempts < MAX_RECONNECT) {
       reconnectAttempts++;
@@ -376,6 +376,7 @@ function handleBridgeEvent(event) {
       break;
     case 'gift':
       console.log('[GAME] Gift:', event.nickname, event.giftName, 'x' + event.count);
+      // 1 presente = 1 letra revelada (para cada unidade do gift)
       const giftCount = event.count || 1;
       for (let i = 0; i < giftCount; i++) {
         revealHint();
@@ -407,8 +408,7 @@ $('demoSend').onclick = () => {
     $('demoMessage').value = '';
   }
 };
-$('demoMessage').addEventListener('keydown', e => {
-  if (e.key === 'Enter') $('demoSend').click();
+$('demoMessage').addEventListener('keydown', e => {                                                                         if (e.key === 'Enter') $('demoSend').click();
 });
 $('giftTip').onclick = revealHint;
 $('adminToggle').onclick = () => $('admin').classList.toggle('hidden');
@@ -416,8 +416,7 @@ $('adminClose').onclick = () => $('admin').classList.add('hidden');
 $('pause').onclick = () => {
   paused = !paused;
   $('pause').textContent = paused ? 'CONTINUAR' : 'PAUSAR';
-  if (paused) stopTickTock();
-  else startTickTock();
+  if (paused) stopTickTock();                                                                                               else startTickTock();
 };
 $('reset').onclick = () => {
   totals.clear(); avatarCache.clear();
@@ -426,8 +425,7 @@ $('reset').onclick = () => {
 $('showAnswer').onclick = () => {
   if (!running || locked) return;
   const q = deck[index];
-  if (!q) return;
-  $('hint').textContent = q.name.toUpperCase();
+  if (!q) return;                                                                                                           $('hint').textContent = q.name.toUpperCase();
   $('message').textContent = RESPOSTA REVELADA: ${q.name.toUpperCase()};
   $('message').className = 'message timeout';
 };
@@ -458,8 +456,7 @@ if (BRIDGE_CONFIG.url && BRIDGE_CONFIG.url !== 'wss://SEU_BRIDGE.onrender.com') 
 }
 
 if (window.COUNTRIES?.length) {
-  deck = shuffle(COUNTRIES);
-  renderFlag();
+  deck = shuffle(COUNTRIES);                                                                                                renderFlag();
   $('hint').textContent = buildHint(deck[index].name, 0);
   render();
 }
