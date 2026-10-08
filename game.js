@@ -82,8 +82,7 @@ function buildHint(answer, revealCount = 0) {
   for (let i = 0; i < chars.length; i++) {
     const c = chars[i];
     if (/[A-Za-zÀ-ÿ]/.test(c)) {
-      if (revealed < revealCount) {
-        out += c.toUpperCase();
+      if (revealed < revealCount) {                                                                                      out += c.toUpperCase();
         revealed++;
       } else {
         out += '_';
@@ -123,16 +122,14 @@ function newQuestion() {
   clearInterval(interval);
   attempts.clear();
   roundWinners = [];
-  locked = false;
-  paused = false;
+  locked = false;                                                                                                  paused = false;
   time = ROUND_TIME;
   revealedLetters = 0;
   $('hint').textContent = '';
   $('message').textContent = 'VALENDO!';
   $('message').className = 'message';
 
-  const q = deck[index];
-  if (q) {
+  const q = deck[index];                                                                                           if (q) {
     $('hint').textContent = buildHint(q.name, 0);
   }
 
@@ -140,8 +137,7 @@ function newQuestion() {
   interval = setInterval(tick, 1000);
   running = true;
   startTickTock();
-}
-
+}                                                                                                  
 function tick() {
   if (paused || locked) return;
 
@@ -161,17 +157,14 @@ function tick() {
 function timeUp() {
   const winners = roundWinners.slice();
   roundWinners = [];
-  renderHitAvatars();
-  if (winners.length > 0) {
+  renderHitAvatars();                                                                                              if (winners.length > 0) {
     showOverlay(winners);
   } else {
     showOverlay(null);
   }
-}
-
+}                                                                                                  
 function showOverlay(winners) {
-  const ov = $('winnerOverlay');
-  const q = deck[index];
+  const ov = $('winnerOverlay');                                                                                   const q = deck[index];
   const countryName = q ? q.name.toUpperCase() : '';
   const winnerCount = winners.length;
 
@@ -189,8 +182,7 @@ function showOverlay(winners) {
     let othersHtml = '';
     if (others.length > 0) {
       othersHtml = `
-        <div class="winner-others-row">
-          ${others.map((w, i) => {
+        <div class="winner-others-row">                                                                                    ${others.map((w, i) => {
             const pos = i + 2;
             const medal = pos === 2 ? '🥈' : pos === 3 ? '🥉' : #${pos};
             const displayPoints = pos === 2 ? w.points : 3;
@@ -270,7 +262,8 @@ function attempt(username, message, avatar = '') {
   const correct = [q.name, ...(q.aliases || [])].map(norm).includes(norm(message));
   if (!correct) return false;
   if (roundWinners.some(p => p.key === key)) return true;
-  if (roundWinners.length >= 5) return true;                                                                     
+  if (roundWinners.length >= 5) return true;
+
   const points = roundWinners.length === 0 ? 5 : 3;
   const p = totals.get(key) || { key, name, avatar, points: 0, order: totals.size };
   if (avatar) p.avatar = avatar;
@@ -278,7 +271,8 @@ function attempt(username, message, avatar = '') {
   totals.set(key, p);
   const w = { key, name: p.name, avatar: p.avatar, points };
   roundWinners.push(w);
-                                                                                                                   renderHitAvatars();
+
+  renderHitAvatars();
   renderRanks();
 
   $('message').textContent = ${name} ACERTOU! +${points} PTS;
@@ -356,7 +350,297 @@ function connectBridge(bridgeUrl, tiktokUsername) {
       handleBridgeEvent(JSON.parse(event.data));
     } catch (e) {
       console.error('[GAME] Parse error:', e);
-    }                                                                                                              };
+    }
+  };
+  ws.onclose = () => {
+    console.log('[GAME] Desconectado, reconectando...');
+    ws = null;
+    setLiveStatus('disconnected', 'DESCONECTADO');
+    if (reconnectAttempts < MAX_RECONNECT) {
+      reconnectAttempts++;
+      setTimeout(() => connectBridge(bridgeUrl, tiktokUsername), RECONNECT_DELAY);
+    }
+  };
+  ws.onerror = (err) => console.error('[GAME] WS error:', err);                                                  }
+
+function handleBridgeEvent(event) {
+  switch (event.type) {
+    case 'comment':
+      console.log('[GAME] Chat:', event.nickname, event.comment);
+      attempt(event.nickname, event.comment, event.avatar);
+      break;
+    case 'gift':
+      console.log('[GAME] Gift:', event.nickname, event.giftName, 'x' + event.count);
+      const giftCount = event.count || 1;
+      for (let i = 0; i < giftCount; i++) {
+        revealHint();
+      }
+      break;
+    case 'like':
+    case 'follow':
+    case 'share':
+      break;
+    case 'bridge_status':                                                                                              setLiveStatus(event.status, event.reason || event.error || event.username);
+      break;
+  }
+}
+
+function setLiveStatus(status, text) {
+  const dot = $('liveDot'), txt = $('liveText');
+  if (!dot || !txt) return;
+  dot.className = 'live-dot ' + status;                                                                            txt.textContent = text || status;
+}
+
+$('start').onclick = start;
+$('next').onclick = advance;
+$('demoSend').onclick = () => {
+  const m = $('demoMessage').value.trim();
+  if (m) {
+    handleChatMessage($('demoUser').value, m, $('demoAvatar').value.trim());
+    $('demoMessage').value = '';
+  }
+};
+$('demoMessage').addEventListener('keydown', e => {
+  if (e.key === 'Enter') $('demoSend').click();
+});
+$('giftTip').onclick = revealHint;
+$('adminToggle').onclick = () => $('admin').classList.toggle('hidden');
+$('adminClose').onclick = () => $('admin').classList.add('hidden');
+$('pause').onclick = () => {
+  paused = !paused;
+  $('pause').textContent = paused ? 'CONTINUAR' : 'PAUSAR';
+  if (paused) stopTickTock();                                                                                      else startTickTock();
+};
+$('reset').onclick = () => {
+  totals.clear(); avatarCache.clear();
+  start();
+};
+$('showAnswer').onclick = () => {
+  if (!running || locked) return;
+  const q = deck[index];
+  if (!q) return;
+  $('hint').textContent = q.name.toUpperCase();
+  $('message').textContent = RESPOSTA REVELADA: ${q.name.toUpperCase()};
+  $('message').className = 'message timeout';
+};
+$('timeInput').onchange = e => {
+  ROUND_TIME = Math.max(3, Math.min(120, +e.target.value || 15));
+  time = ROUND_TIME;
+  render();
+};
+
+const modeToggle = $('modeToggle'), modeLabel = $('modeLabel');
+if (modeToggle && modeLabel) {
+  const w = { key, name: p.name, avatar: p.avatar, points };
+  roundWinners.push(w);
+
+  renderHitAvatars();                                                                                renderRanks();
+
+  $('message').textContent = ${name} ACERTOU! +${points} PTS;
+  $('message').className = 'message good';
+
+  return true;
+}
+
+window.handleChatMessage = (username, message, avatarUrl = '') => attempt(username, message, avatarUrl || '');
+
+function revealHint() {
+  const n = deck[index]?.name || '';
+  if (!n) return;
+
+  const letterCount = [...n].filter(c => /[A-Za-zÀ-ÿ]/.test(c)).length;
+
+  if (revealedLetters < letterCount) {
+    revealedLetters++;
+    $('hint').textContent = buildHint(deck[index].name, revealedLetters);
+    try {
+      const A = window.AudioContext || window.webkitAudioContext, c = new A(), o = c.createOscillator(), g = c.createGain();
+      o.type = 'sine'; o.frequency.value = 880; g.gain.value = .025;
+      o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime + .08);
+    } catch (e) {}
+  }
+}                                                                                                  
+window.handleGiftEvent = revealHint;
+
+function startTickTock() {                                                                           stopTickTock();
+  playTick();                                                                                        tickTockInterval = setInterval(playTick, 1000);                                                  }
+
+function stopTickTock() {                                                                            if (tickTockInterval) {
+    clearInterval(tickTockInterval);
+    tickTockInterval = null;
+  }
+}
+                                                                                                   function playTick() {                                                                                try {                                                                                                const A = window.AudioContext || window.webkitAudioContext;
+    if (!A) return;
+    const c = new A(), o = c.createOscillator(), g = c.createGain();
+    o.frequency.value = 750;
+    o.type = 'sine';
+    g.gain.value = 0.018;
+    o.connect(g);
+    g.connect(c.destination);
+    o.start();
+    o.stop(c.currentTime + 0.07);
+  } catch (e) {}
+}
+
+function connectBridge(bridgeUrl, tiktokUsername) {
+  if (ws) { ws.close(); ws = null; }                                                                 console.log('[GAME] Conectando ao bridge:', bridgeUrl);
+  ws = new WebSocket(bridgeUrl);
+  ws.onopen = () => {
+    console.log('[GAME] Conectado ao bridge');
+    reconnectAttempts = 0;
+    setLiveStatus('connecting', 'CONECTANDO...');
+    const httpUrl = bridgeUrl.replace('wss:', 'https:').replace('ws:', 'http:');
+    fetch(httpUrl + '/connect', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: tiktokUsername })
+    }).then(r => r.json()).then(data => console.log('[GAME] Bridge:', data)).catch(err => console.error('[GAME] Erro connect:', err));
+  };
+  ws.onmessage = (event) => {
+    try {
+      handleBridgeEvent(JSON.parse(event.data));
+    } catch (e) {
+      console.error('[GAME] Parse error:', e);
+    }
+  };
+  ws.onclose = () => {
+    console.log('[GAME] Desconectado, reconectando...');
+    ws = null;
+    setLiveStatus('disconnected', 'DESCONECTADO');
+    if (reconnectAttempts < MAX_RECONNECT) {                                                             reconnectAttempts++;
+      setTimeout(() => connectBridge(bridgeUrl, tiktokUsername), RECONNECT_DELAY);
+    }
+  };
+  ws.onerror = (err) => console.error('[GAME] WS error:', err);
+}
+
+function handleBridgeEvent(event) {                                                                  switch (event.type) {
+    case 'comment':
+      console.log('[GAME] Chat:', event.nickname, event.comment);                                        attempt(event.nickname, event.comment, event.avatar);
+      break;
+    case 'gift':
+      console.log('[GAME] Gift:', event.nickname, event.giftName, 'x' + event.count);
+      const giftCount = event.count || 1;
+      for (let i = 0; i < giftCount; i++) {
+        revealHint();
+      }                                                                                                  break;
+    case 'like':
+    case 'follow':
+    case 'share':
+      break;
+    case 'bridge_status':
+      setLiveStatus(event.status, event.reason || event.error || event.username);
+      break;
+  }
+}
+
+function setLiveStatus(status, text) {
+  const dot = $('liveDot'), txt = $('liveText');
+  if (!dot || !txt) return;
+  dot.className = 'live-dot ' + status;
+  txt.textContent = text || status;
+}
+
+$('start').onclick = start;
+$('next').onclick = advance;
+$('demoSend').onclick = () => {                                                                      const m = $('demoMessage').value.trim();
+  if (m) {
+    handleChatMessage($('demoUser').value, m, $('demoAvatar').value.trim());
+    $('demoMessage').value = '';
+  }
+};
+$('demoMessage').addEventListener('keydown', e => {
+  if (e.key === 'Enter') $('demoSend').click();
+});
+$('giftTip').onclick = revealHint;                                                                 $('adminToggle').onclick = () => $('admin').classList.toggle('hidden');
+$('adminClose').onclick = () => $('admin').classList.add('hidden');
+$('pause').onclick = () => {
+  paused = !paused;
+  $('pause').textContent = paused ? 'CONTINUAR' : 'PAUSAR';
+  if (paused) stopTickTock();
+  else startTickTock();
+};
+$('reset').onclick = () => {
+  totals.clear(); avatarCache.clear();
+  start();
+};                                                                                                 $('showAnswer').onclick = () => {
+  if (!running || locked) return;
+  const q = deck[index];
+  if (!q) return;
+  $('hint').textContent = q.name.toUpperCase();
+  $('message').textContent = RESPOSTA REVELADA: ${q.name.toUpperCase()};
+  $('message').className = 'message timeout';
+};                                                                                                 $('timeInput').onchange = e => {
+  ROUND_TIME = Math.max(3, Math.min(120, +e.target.value || 15));
+  time = ROUND_TIME;
+  const w = { key, name: p.name, avatar: p.avatar, points };
+  roundWinners.push(w);
+                                                                                                     renderHitAvatars();
+  renderRanks();
+
+  $('message').textContent = ${name} ACERTOU! +${points} PTS;
+  $('message').className = 'message good';                                                                                                                                                              return true;
+}
+
+window.handleChatMessage = (username, message, avatarUrl = '') => attempt(username, message, avatarUrl || '');                                                                                                                                                                                           function revealHint() {
+  const n = deck[index]?.name || '';
+  if (!n) return;
+                                                                                                     const letterCount = [...n].filter(c => /[A-Za-zÀ-ÿ]/.test(c)).length;
+
+  if (revealedLetters < letterCount) {
+    revealedLetters++;
+    $('hint').textContent = buildHint(deck[index].name, revealedLetters);
+    try {
+      const A = window.AudioContext || window.webkitAudioContext, c = new A(), o = c.createOscillator(), g = c.createGain();
+      o.type = 'sine'; o.frequency.value = 880; g.gain.value = .025;
+      o.connect(g); g.connect(c.destination); o.start(); o.stop(c.currentTime + .08);                  } catch (e) {}
+  }
+}
+
+window.handleGiftEvent = revealHint;
+
+function startTickTock() {
+  stopTickTock();                                                                                    playTick();                                                                                        tickTockInterval = setInterval(playTick, 1000);
+}                                                                                                                                                                                                     function stopTickTock() {
+  if (tickTockInterval) {
+    clearInterval(tickTockInterval);
+    tickTockInterval = null;
+  }
+}                                                                                                  
+function playTick() {                                                                                try {
+    const A = window.AudioContext || window.webkitAudioContext;                                        if (!A) return;
+    const c = new A(), o = c.createOscillator(), g = c.createGain();
+    o.frequency.value = 750;
+    o.type = 'sine';
+    g.gain.value = 0.018;                                                                              o.connect(g);
+    g.connect(c.destination);                                                                          o.start();
+    o.stop(c.currentTime + 0.07);
+  } catch (e) {}
+}
+
+function connectBridge(bridgeUrl, tiktokUsername) {
+  if (ws) { ws.close(); ws = null; }
+  console.log('[GAME] Conectando ao bridge:', bridgeUrl);
+  ws = new WebSocket(bridgeUrl);
+  ws.onopen = () => {
+    console.log('[GAME] Conectado ao bridge');
+    reconnectAttempts = 0;
+    setLiveStatus('connecting', 'CONECTANDO...');
+    const httpUrl = bridgeUrl.replace('wss:', 'https:').replace('ws:', 'http:');
+    fetch(httpUrl + '/connect', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username: tiktokUsername })
+    }).then(r => r.json()).then(data => console.log('[GAME] Bridge:', data)).catch(err => console.error('[GAME] Erro connect:', err));
+  };
+  ws.onmessage = (event) => {
+    try {
+      handleBridgeEvent(JSON.parse(event.data));
+    } catch (e) {
+      console.error('[GAME] Parse error:', e);
+    }
+  };
   ws.onclose = () => {
     console.log('[GAME] Desconectado, reconectando...');
     ws = null;
@@ -410,8 +694,7 @@ $('demoSend').onclick = () => {
 };
 $('demoMessage').addEventListener('keydown', e => {
   if (e.key === 'Enter') $('demoSend').click();
-});
-$('giftTip').onclick = revealHint;
+});                                                                                                $('giftTip').onclick = revealHint;
 $('adminToggle').onclick = () => $('admin').classList.toggle('hidden');
 $('adminClose').onclick = () => $('admin').classList.add('hidden');
 $('pause').onclick = () => {
@@ -427,7 +710,9 @@ $('reset').onclick = () => {
 $('showAnswer').onclick = () => {
   if (!running || locked) return;
   const q = deck[index];
-  if (!q) return;                                                                                                  $('hint').textContent = q.name.toUpperCase();                                                                    $('message').textContent = RESPOSTA REVELADA: ${q.name.toUpperCase()};
+  if (!q) return;
+  $('hint').textContent = q.name.toUpperCase();
+  $('message').textContent = RESPOSTA REVELADA: ${q.name.toUpperCase()};
   $('message').className = 'message timeout';
 };
 $('timeInput').onchange = e => {
@@ -446,11 +731,11 @@ if (modeToggle && modeLabel) {
 }
 
 const BRIDGE_CONFIG = {
-  url: 'wss://tiktokbriedge.onrender.com',
+  url: 'wss://tiktokbridge.onrender.com',
   tiktokUsername: 'truecrimevideosreal'
 };
 
-if (BRIDGE_CONFIG.url !== 'wss://SEU_BRIDGE.onrender.com') {
+if (BRIDGE_CONFIG.url && BRIDGE_CONFIG.url !== 'wss://SEU_BRIDGE.onrender.com') {
   connectBridge(BRIDGE_CONFIG.url, BRIDGE_CONFIG.tiktokUsername);
 } else {
   console.log('[GAME] Configure BRIDGE_CONFIG no game.js com sua URL do Render e @ do streamer');
@@ -459,6 +744,5 @@ if (BRIDGE_CONFIG.url !== 'wss://SEU_BRIDGE.onrender.com') {
 if (window.COUNTRIES?.length) {
   deck = shuffle(COUNTRIES);
   renderFlag();
-  $('hint').textContent = buildHint(deck[index].name, 0);
-  render();
+  $('hint').textContent = buildHint(deck[index].name, 0);                                            render();
 }
