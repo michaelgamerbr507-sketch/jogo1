@@ -73,8 +73,7 @@ function renderHitAvatars() {
       <span class="hit-name">${esc(w.name)}</span>
     </div>`
   ).join('');
-}
-
+}                                                                                                                                                             
 function buildHint(answer, revealCount = 0) {
   const chars = [...answer];
   let out = '';
@@ -126,8 +125,7 @@ function newQuestion() {
   locked = false;
   paused = false;
   time = ROUND_TIME;
-  revealedLetters = 0;
-  $('hint').textContent = '';
+  revealedLetters = 0;                                                                                                                                          $('hint').textContent = '';
   $('message').textContent = 'VALENDO!';
   $('message').className = 'message';
 
@@ -142,9 +140,11 @@ function newQuestion() {
   startTickTock();
 }
 
-function tick() {                                                                                                                                               if (paused || locked) return;
+function tick() {
+  if (paused || locked) return;
 
-  time = Math.max(0, time - 1);                                                                                                                                 render();
+  time = Math.max(0, time - 1);
+  render();
 
   if (time === 0) {
     clearInterval(interval);
@@ -192,8 +192,7 @@ function showOverlay(firstOrList) {
       advance();
     }
   }, 1000);
-}
-
+}                                                                                                                                                             
 function advance() {
   index++;
   if (index >= deck.length) {
@@ -234,8 +233,7 @@ function attempt(username, message, avatar = '') {
   totals.set(key, p);
   const w = { key, name: p.name, avatar: p.avatar, points };
   roundWinners.push(w);
-
-  renderHitAvatars();
+                                                                                                                                                                renderHitAvatars();
   renderRanks();
 
   $('message').textContent = ${name} ACERTOU! +${points} PTS;
@@ -263,8 +261,7 @@ function revealHint() {
   }
 }
 
-window.handleGiftEvent = revealHint;
-
+window.handleGiftEvent = revealHint;                                                                                                                          
 function startTickTock() {
   stopTickTock();
   playTick();
@@ -319,11 +316,13 @@ function connectBridge(bridgeUrl, tiktokUsername) {
     console.log('[GAME] Desconectado, reconectando...');
     ws = null;
     setLiveStatus('disconnected', 'DESCONECTADO');
-    if (reconnectAttempts < MAX_RECONNECT) {
+⚠️  Stream interrupted by network error (finish_reason='length' on partial-stream-stub)
+    if (reconnectAttempts < MAX_RECONNECT
+╰if (reconnectAttempts < MAX_RECONNECT) {
       reconnectAttempts++;
       setTimeout(() => connectBridge(bridgeUrl, tiktokUsername), RECONNECT_DELAY);
     }
-  };
+  });
   ws.onerror = (err) => console.error('[GAME] WS error:', err);
 }
 
@@ -335,12 +334,10 @@ function handleBridgeEvent(event) {
       break;
     case 'gift':
       console.log('[GAME] Gift:', event.nickname, event.giftName, 'x' + event.count);
-      const giftCount = event.count || 1;
-      for (let i = 0; i < giftCount; i++) {
-        revealHint();
-      }
+      revealHint();
       break;
-    case 'like':                                                                                                                                                  case 'follow':
+    case 'like':
+    case 'follow':
     case 'share':
       break;
     case 'bridge_status':
@@ -366,7 +363,9 @@ $('demoSend').onclick = () => {
   }
 };
 $('demoMessage').addEventListener('keydown', e => {
-  if (e.key === 'Enter') $('demoSend').click();                                                                                                               });                                                                                                                                                           $('giftTip').onclick = revealHint;
+  if (e.key === 'Enter') $('demoSend').click();
+});
+$('giftTip').onclick = revealHint;
 $('adminToggle').onclick = () => $('admin').classList.toggle('hidden');
 $('adminClose').onclick = () => $('admin').classList.add('hidden');
 $('pause').onclick = () => {
@@ -392,8 +391,10 @@ $('timeInput').onchange = e => {
   time = ROUND_TIME;
   render();
 };
-                                                                                                                                                              const modeToggle = $('modeToggle'), modeLabel = $('modeLabel');
-if (modeToggle && modeLabel) {                                                                                                                                  modeToggle.checked = true;
+
+const modeToggle = $('modeToggle'), modeLabel = $('modeLabel');
+if (modeToggle && modeLabel) {
+  modeToggle.checked = true;
   modeToggle.onchange = () => {
     $('testChat').classList.toggle('hidden', !modeToggle.checked);
     modeLabel.textContent = modeToggle.checked ? 'Modo Desenvolvimento (chat teste visivel)' : 'Modo Normal (chat teste oculto)';
@@ -404,13 +405,144 @@ const BRIDGE_CONFIG = {
   url: 'wss://tiktokbridge.onrender.com',
   tiktokUsername: 'truecrimevideosreal'
 };
-                                                                                                                                                              if (BRIDGE_CONFIG.url !== 'wss://SEU_BRIDGE.onrender.com') {
+
+if (BRIDGE_CONFIG.url !== 'wss://SEU_BRIDGE.onrender.com') {
   connectBridge(BRIDGE_CONFIG.url, BRIDGE_CONFIG.tiktokUsername);
 } else {
   console.log('[GAME] Configure BRIDGE_CONFIG no game.js com sua URL do Render e @ do streamer');
 }
 
 if (window.COUNTRIES?.length) {
-  deck = shuffle(COUNTRIES);
-  render();
+  deck = shuffle(COUNTRIES);                                                                                                                                    render();
 }
+                                                                                                                                                              
+
+
+server_fixed.js (avatar fix v2.5) - /root/tiktok-bridge/server_fixed.js
+
+javascript
+import express from 'express';
+import http from 'http';
+import { WebSocketServer } from 'ws';
+import * as tiktok from 'tiktok-live-connector';
+
+console.log('[BRIDGE] Exports do tiktok-live-connector:', Object.keys(tiktok));
+
+const TikTokLiveConnection =
+  tiktok.TikTokLiveConnection ||
+  tiktok.TikTokLiveConnector ||
+  tiktok.TikTokLiveClient ||
+  tiktok.TikTokLive ||
+  tiktok.LiveConnector ||
+  tiktok.Connector ||
+  tiktok.default ||
+  tiktok;
+
+if (!TikTokLiveConnection || typeof TikTokLiveConnection !== 'function') {
+  console.error('[BRIDGE] ERRO: Não encontrou classe construtora nos exports');
+  console.error('[BRIDGE] Exports completos (primeiros 20):', Object.keys(tiktok).slice(0, 20));
+  process.exit(1);
+}
+
+console.log('[BRIDGE] Usando construtor:', TikTokLiveConnection.name || 'anonymous');
+
+const app = express();
+const server = http.createServer(app);
+const wss = new WebSocketServer({ server });                                                                                                                  
+const PORT = process.env.PORT || 10000;
+const TIKTOK_USERNAME = process.env.TIKTOK_USERNAME || 'ilustramichael';
+
+let clients = new Set();
+
+function broadcast(msg) {
+  const data = JSON.stringify(msg);
+  clients.forEach(ws => {
+    if (ws.readyState === 1) ws.send(data);
+  });
+}
+
+wss.on('connection', (ws) => {
+  clients.add(ws);
+  console.log('[BRIDGE] Cliente conectado. Total:', clients.size);
+  ws.send(JSON.stringify({ type: 'bridge_status', connected: true }));
+
+  ws.on('close', () => {
+    clients.delete(ws);                                                                                                                                           console.log('[BRIDGE] Cliente desconectado. Total:', clients.size);
+  });
+});
+                                                                                                                                                              app.get('/health', (req, res) => res.json({ ok: true, clients: clients.size }));
+
+// Construtor: uniqueId como 1º argumento posicional
+const tiktokClient = new TikTokLiveConnection(TIKTOK_USERNAME, {
+  processInitialData: true
+});
+
+console.log('[BRIDGE] Conectando ao TikTok:', TIKTOK_USERNAME);                                                                                               
+tiktokClient.connect().then(() => {
+  console.log('[BRIDGE] Conectado ao TikTok Live:', TIKTOK_USERNAME);
+  broadcast({ type: 'bridge_status', connected: true });
+}).catch(err => {
+  console.error('[BRIDGE] Erro ao conectar:', err.message);
+  broadcast({ type: 'bridge_status', connected: false, error: err.message });
+});
+
+tiktokClient.on('*', (eventName, data) => {
+  console.log('[BRIDGE DEBUG] Evento:', eventName, JSON.stringify(data).slice(0, 300));
+});
+
+// Helper: extrai URL do avatar do formato ImageModel { urlList: [...] } do tiktok-live-connector v2.5+
+function extractAvatarUrl(user) {
+  if (!user) return '';
+
+  // Ordem de prioridade: avatarThumb > avatarMedium > avatarLarge > profilePictureUrl (legacy)
+  const avatarSources = [
+    user.avatarThumb,
+    user.avatarMedium,
+    user.avatarLarge,
+    user.profilePictureUrl
+  ];
+
+  for (const source of avatarSources) {
+    if (!source) continue;                                                                                                                                        // ImageModel tem urlList: string[]
+    if (source.urlList && Array.isArray(source.urlList) && source.urlList.length > 0) {
+      return source.urlList[0];
+    }
+    // Fallback se vier como string direta (versões antigas)
+    if (typeof source === 'string' && source.startsWith('http')) {
+      return source;
+    }
+    // Fallback se vier com url/uri direto
+    if (source.url) return source.url;
+    if (source.uri) return source.uri;
+  }
+  return '';
+}
+
+tiktokClient.on('chat', (data) => {
+  console.log('[BRIDGE] Chat data completo:', JSON.stringify(data, null, 2));
+
+  const user = data.user || data.sender || data.profile || data.data || data;
+
+  const nickname = user.uniqueId || user.nickname || user.unique_id || user.userName || user.name || user.displayId || 'Anonimo';
+  const comment = data.text || data.comment || data.content || user.comment || '';
+
+  const avatar = extractAvatarUrl(user);
+
+  const userId = user.userId || user.id || user.user_id || user.idStr || data.userId || '';
+
+  console.log('[BRIDGE] Enviando:', { type: 'comment', nickname, comment, avatar: avatar ? 'OK' : 'VAZIO' });
+
+  broadcast({
+    type: 'comment',
+    nickname,
+    comment,
+    avatar,
+    userId
+  });
+});
+
+server.listen(PORT, '0.0.0.0', () => {
+  console.log('[BRIDGE] Servidor rodando na porta', PORT);
+  console.log('[BRIDGE] Health: http://localhost:' + PORT + '/health');
+  console.log('[BRIDGE] WebSocket: ws://localhost:' + PORT + '/');
+});
