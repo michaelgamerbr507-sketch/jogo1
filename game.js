@@ -8,6 +8,7 @@ let tickTockInterval = null;
 let revealedLetters = 0;
 let avatarCache = new Map();
 
+
 const $ = id => document.getElementById(id);
 const norm = s => String(s ?? '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').toLowerCase().replace(/[^a-z0-9]/g, '');
 function esc(s) {
@@ -29,10 +30,9 @@ function av(p, cls = 'avatar') {
   avatarCache.set(key, html);
   return html;
 }
-
 function renderFlag() {
   const q = deck[index];
-  $('flag').innerHTML = q.flagAsset ? <img src="${esc(q.flagAsset)}" alt="${esc(q.name)}" width="180" height="120"> : esc(q.flag);
+  $('flag').innerHTML = q.flagAsset ? <img src="${esc(q.flagAsset)}" alt="${esc(q.name)}"> : esc(q.flag);
 }
 
 function renderAttempts() {
@@ -112,14 +112,16 @@ function render() {
   }
 }
 
-function start() {                                                                                                          clearInterval(interval); avatarCache.clear();
+function start() {
+  clearInterval(interval); avatarCache.clear();
   deck = shuffle(COUNTRIES);
   index = 0;
   newQuestion();
 }
 
 function newQuestion() {
-  clearInterval(interval);                                                                                                  attempts.clear();
+  clearInterval(interval);
+  attempts.clear();
   roundWinners = [];
   locked = false;
   paused = false;
@@ -135,8 +137,7 @@ function newQuestion() {
   }
 
   render();
-  interval = setInterval(tick, 1000);
-  running = true;
+  interval = setInterval(tick, 1000);                                                                                                                                             running = true;
   startTickTock();
 }
 
@@ -167,61 +168,19 @@ function timeUp() {
   }
 }
 
-function showOverlay(winners) {                                                                                             const ov = $('winnerOverlay');
-  const q = deck[index];
-  const countryName = q ? q.name.toUpperCase() : '';
-  const winnerCount = winners.length;
-
-  if (winners && winners.length > 0) {
-    // Primeiro lugar (destaque no centro)
-    const first = winners[0];                                                                                                 const firstHtml = `
-      <div class="winner-first">
-        ${av(first, 'winner-avatar-first')}
-        <div class="winner-name-first">${esc(first.name)}</div>
-        <div class="winner-label-first">🥇 PRIMEIRO — +${first.points} PTS</div>
-      </div>
-    `;
-
-    // Demais vencedores (2º em diante) em fila horizontal
-    const others = winners.slice(1);
-    let othersHtml = '';
-    if (others.length > 0) {
-      othersHtml = `
-        <div class="winner-others-row">
-          ${others.map((w, i) => {
-            const pos = i + 2;
-            const medal = pos === 2 ? '🥈' : pos === 3 ? '🥉' : #${pos};
-            // 2º lugar em diante: todos ganham 3 pontos (mesmo do 2º)
-            const displayPoints = pos === 2 ? w.points : 3;
-            return `
-              <div class="winner-other">
-                ${av(w, 'winner-avatar-other')}
-                <div class="winner-name-other">${esc(w.name)}</div>
-                <div class="winner-label-other">${medal} — +${displayPoints} PTS</div>
-              </div>
-            `;
-          }).join('')}
-        </div>
-      `;
-    }
-                                                                                                                              // Header com resposta e número de acertos
-    const headerHtml = `
-      <div class="winner-header">
-        <div class="winner-answer-text">A RESPOSTA ERA: <strong>${esc(countryName)}</strong></div>
-        <div class="winner-count-text">${winnerCount} ACERTO${winnerCount !== 1 ? 'S' : ''}</div>
-      </div>                                                                                                                  `;
-
-    $('winnerContent').innerHTML = headerHtml + firstHtml + othersHtml;                                                     } else {
-    $('winnerContent').innerHTML = `
-      <div class="winner-header">
-        <div class="winner-answer-text">A RESPOSTA ERA: <strong>${esc(countryName)}</strong></div>
-        <div class="winner-count-text">NINGUÉM ACERTOU</div>
-      </div>
-      <div class="winner-fallback">!</div>
-      <div class="winner-name">NINGUÉM ACERTOU</div>
-    `;
+function showOverlay(firstOrList) {
+  const ov = $('winnerOverlay');
+  if (firstOrList && firstOrList.length > 0) {
+    let html = '';
+    firstOrList.forEach((w, i) => {
+      const medal = i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : #${i + 1};
+      html += ${av(w, 'winner-avatar')}<div class="winner-name">${esc(w.name)}</div><div class="winner-label">${medal} — +${w.points} PTS</div>;
+      if (i < firstOrList.length - 1) html += '<hr style="margin:8px auto;width:60%;border-color:#fff3">';
+    });
+    $('winnerContent').innerHTML = html;
+  } else {
+    $('winnerContent').innerHTML = '<div class="winner-fallback">!</div><div class="winner-name">NINGUEM ACERTOU</div><div class="winner-label">A RESPOSTA ERA</div><div class="winner-answer">' + esc(deck[index].name.toUpperCase()) + '</div>';
   }
-
   $('winnerOverlay').classList.add('show');
   let n = 3;
   $('nextCountdown').textContent = n;
@@ -229,7 +188,8 @@ function showOverlay(winners) {                                                 
     n--;
     $('nextCountdown').textContent = Math.max(n, 0);
     if (n <= 0) {
-      clearInterval(t);                                                                                                         $('winnerOverlay').classList.remove('show');
+      clearInterval(t);
+      $('winnerOverlay').classList.remove('show');
       advance();
     }
   }, 1000);
@@ -268,8 +228,7 @@ function attempt(username, message, avatar = '') {
   if (roundWinners.some(p => p.key === key)) return true;
   if (roundWinners.length >= 5) return true;
 
-  // Pontuação: 1º=5, 2º em diante=3
-  const points = roundWinners.length === 0 ? 5 : 3;
+  const points = [5, 3, 2, 1, 1][roundWinners.length];
   const p = totals.get(key) || { key, name, avatar, points: 0, order: totals.size };
   if (avatar) p.avatar = avatar;
   p.points += points;
@@ -347,7 +306,8 @@ function connectBridge(bridgeUrl, tiktokUsername) {
     fetch(httpUrl + '/connect', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ username: tiktokUsername })                                                                      }).then(r => r.json()).then(data => console.log('[GAME] Bridge:', data)).catch(err => console.error('[GAME] Erro connect:', err));
+      body: JSON.stringify({ username: tiktokUsername })
+    }).then(r => r.json()).then(data => console.log('[GAME] Bridge:', data)).catch(err => console.error('[GAME] Erro connect:', err));
   };
   ws.onmessage = (event) => {
     try {
@@ -376,11 +336,7 @@ function handleBridgeEvent(event) {
       break;
     case 'gift':
       console.log('[GAME] Gift:', event.nickname, event.giftName, 'x' + event.count);
-      // 1 presente = 1 letra revelada (para cada unidade do gift)
-      const giftCount = event.count || 1;
-      for (let i = 0; i < giftCount; i++) {
-        revealHint();
-      }
+      revealHint();
       break;
     case 'like':
     case 'follow':
@@ -408,15 +364,15 @@ $('demoSend').onclick = () => {
     $('demoMessage').value = '';
   }
 };
-$('demoMessage').addEventListener('keydown', e => {                                                                         if (e.key === 'Enter') $('demoSend').click();
+$('demoMessage').addEventListener('keydown', e => {
+  if (e.key === 'Enter') $('demoSend').click();
 });
-$('giftTip').onclick = revealHint;
-$('adminToggle').onclick = () => $('admin').classList.toggle('hidden');
+$('giftTip').onclick = revealHint;                                                                                                                                              $('adminToggle').onclick = () => $('admin').classList.toggle('hidden');
 $('adminClose').onclick = () => $('admin').classList.add('hidden');
-$('pause').onclick = () => {
-  paused = !paused;
+$('pause').onclick = () => {                                                                                                                                                      paused = !paused;
   $('pause').textContent = paused ? 'CONTINUAR' : 'PAUSAR';
-  if (paused) stopTickTock();                                                                                               else startTickTock();
+  if (paused) stopTickTock();
+  else startTickTock();
 };
 $('reset').onclick = () => {
   totals.clear(); avatarCache.clear();
@@ -425,7 +381,8 @@ $('reset').onclick = () => {
 $('showAnswer').onclick = () => {
   if (!running || locked) return;
   const q = deck[index];
-  if (!q) return;                                                                                                           $('hint').textContent = q.name.toUpperCase();
+  if (!q) return;
+  $('hint').textContent = q.name.toUpperCase();
   $('message').textContent = RESPOSTA REVELADA: ${q.name.toUpperCase()};
   $('message').className = 'message timeout';
 };
@@ -440,23 +397,23 @@ if (modeToggle && modeLabel) {
   modeToggle.checked = true;
   modeToggle.onchange = () => {
     $('testChat').classList.toggle('hidden', !modeToggle.checked);
-    modeLabel.textContent = modeToggle.checked ? 'Modo Admin (chat teste visível)' : 'Modo Normal (chat teste oculto)';
+    modeLabel.textContent = modeToggle.checked ? 'Modo Desenvolvimento (chat teste visivel)' : 'Modo Normal (chat teste oculto)';
   };
 }
 
 const BRIDGE_CONFIG = {
-  url: 'wss://tiktokbridge.onrender.com',
-  tiktokUsername: 'truecrimevideosreal'
+  url: 'wss://tiktokbriedge.onrender.com',                                                                                                                                        tiktokUsername: 'ilustramichael'
 };
 
-if (BRIDGE_CONFIG.url && BRIDGE_CONFIG.url !== 'wss://SEU_BRIDGE.onrender.com') {
+if (BRIDGE_CONFIG.url !== 'wss://SEU_BRIDGE.onrender.com') {
   connectBridge(BRIDGE_CONFIG.url, BRIDGE_CONFIG.tiktokUsername);
 } else {
   console.log('[GAME] Configure BRIDGE_CONFIG no game.js com sua URL do Render e @ do streamer');
 }
 
 if (window.COUNTRIES?.length) {
-  deck = shuffle(COUNTRIES);                                                                                                renderFlag();
+  deck = shuffle(COUNTRIES);
+  renderFlag();
   $('hint').textContent = buildHint(deck[index].name, 0);
   render();
 }
