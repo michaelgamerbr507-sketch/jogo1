@@ -170,7 +170,7 @@ function timeUp() {
 }
 
 function showOverlay(winners) {
-  const ov = $('winnerOverlay');
+  const overlay = $('winnerOverlay');
   const q = deck[index];
   const countryName = q ? q.name.toUpperCase() : '';
   const winnerCount = winners.length;
@@ -212,18 +212,29 @@ function showOverlay(winners) {
   }
   
   $('winnerContent').innerHTML = headerHtml + winnersHtml;
-  $('winnerOverlay').classList.add('show');
-  let n = 3;
-  $('nextCountdown').textContent = n;
-  const t = setInterval(() => {
-    n--;
-    $('nextCountdown').textContent = Math.max(n, 0);
-    if (n <= 0) {
-      clearInterval(t);
-      $('winnerOverlay').classList.remove('show');
-      advance();
-    }
-  }, 1000);
+  
+  // FORÇA EXIBIR O OVERLAY
+  overlay.style.display = 'flex';
+  overlay.classList.add('show');
+  
+  // BOTÃO PRÓXIMA MANUAL (não auto-advance)
+  const nextBtn = document.createElement('button');
+  nextBtn.id = 'nextRoundBtn';
+  nextBtn.textContent = 'PRÓXIMA RODADA';
+  nextBtn.style.cssText = 'margin-top:20px;padding:15px 30px;font-size:18px;background:#00d4aa;color:#000;border:none;border-radius:8px;font-weight:bold;cursor:pointer;';
+  nextBtn.onclick = () => {
+    const overlay = $('winnerOverlay');
+    overlay.classList.remove('show');
+    overlay.style.display = 'none';
+    document.getElementById('nextRoundBtn')?.remove();
+    advance();
+  };
+  
+  // Remove botão anterior se existir
+  const oldBtn = document.getElementById('nextRoundBtn');
+  if (oldBtn) oldBtn.remove();
+  
+  $('winnerContent').appendChild(nextBtn);
 }
 
 function advance() {
